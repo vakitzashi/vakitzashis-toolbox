@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Колесо Цветового Спектра</title>
+    <!-- Подключение Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Установка шрифта Inter и темной темы -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.5s;
+        }
+        /* Custom styles for the lightness slider track */
+        .lightness-slider::-webkit-slider-runnable-track {
+            height: 10px;
+            border-radius: 5px;
+            background: linear-gradient(to right, #000, #fff);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .lightness-slider::-moz-range-track {
+            height: 10px;
+            border-radius: 5px;
+            background: linear-gradient(to right, #000, #fff);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .lightness-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+            border: 3px solid currentColor; /* Uses current selected color */
+            margin-top: -5px; /* Adjust to center thumb vertically */
+            transition: border-color 0.3s, transform 0.1s;
+        }
+        .lightness-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+            border: 3px solid currentColor; /* Uses current selected color */
+            transition: border-color 0.3s, transform 0.1s;
+        }
+        #copy-message {
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+        }
+        #copy-message.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen p-4 sm:p-8">
+
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-center mb-10 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600">
+            Выбор Цвета HSL
+        </h1>
+
+        <div class="flex flex-col lg:flex-row gap-8">
+            
+            <!-- Левая колонка: Колесо и Ползунок -->
+            <div class="lg:w-3/5 w-full space-y-6">
+                
+                <!-- Контейнер Цветового Колеса -->
+                <div class="relative bg-gray-800 p-2 rounded-xl shadow-2xl transition-all duration-300 hover:shadow-purple-500/30">
+                    <canvas id="colorWheel" width="500" height="500" class="w-full aspect-square rounded-lg cursor-crosshair"></canvas>
+                </div>
+
+                <!-- Ползунок Яркости (Lightness) -->
+                <div class="bg-gray-800 p-4 rounded-xl shadow-xl">
+                    <label for="lightness-slider" class="block text-sm font-medium mb-2 text-gray-300">Яркость (Lightness)</label>
+                    <input type="range" id="lightness-slider" min="0" max="100" value="50" class="lightness-slider w-full h-2 rounded-lg appearance-none cursor-pointer">
+                </div>
+
+            </div>
+
+            <!-- Правая колонка: Предпросмотр и Коды -->
+            <div class="lg:w-2/5 w-full space-y-6">
+                
+                <!-- Предпросмотр Цвета -->
+                <div class="bg-gray-800 p-6 rounded-xl shadow-2xl transition-all duration-300">
+                    <p class="text-xl font-semibold mb-3 text-gray-300">Выбранный Цвет:</p>
+                    <div id="color-preview" class="w-full h-32 rounded-lg border-4 border-gray-700 transition-colors duration-500" style="background-color: rgb(255,0,0);"></div>
+                </div>
+
+                <!-- Кодировки Цвета -->
+                <div class="space-y-4">
+                    <!-- HEX Code -->
+                    <div class="bg-gray-800 p-4 rounded-xl shadow-xl transition-all duration-300 hover:ring-2 hover:ring-purple-500/50 cursor-pointer" data-copy-target="hex" title="Нажмите, чтобы скопировать HEX">
+                        <p class="text-sm font-medium text-gray-400">HEX</p>
+                        <p id="hex-output" class="text-2xl font-mono truncate transition-colors duration-300">#FF0000</p>
+                    </div>
+
+                    <!-- RGB Code -->
+                    <div class="bg-gray-800 p-4 rounded-xl shadow-xl transition-all duration-300 hover:ring-2 hover:ring-purple-500/50 cursor-pointer" data-copy-target="rgb" title="Нажмите, чтобы скопировать RGB">
+                        <p class="text-sm font-medium text-gray-400">RGB</p>
+                        <p id="rgb-output" class="text-2xl font-mono transition-colors duration-300">rgb(255, 0, 0)</p>
+                    </div>
+
+                    <!-- HSL Code (Для информации) -->
+                    <div class="bg-gray-800 p-4 rounded-xl shadow-xl transition-all duration-300 hover:ring-2 hover:ring-purple-500/50 cursor-pointer" data-copy-target="hsl" title="Нажмите, чтобы скопировать HSL">
+                        <p class="text-sm font-medium text-gray-400">HSL</p>
+                        <p id="hsl-output" class="text-2xl font-mono transition-colors duration-300">hsl(0, 100%, 50%)</p>
+                    </div>
+                </div>
+
+                <!-- Сообщение о копировании -->
+                <div id="copy-message" class="fixed bottom-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-2xl text-sm font-semibold">
+                    Код скопирован!
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Инициализация переменных
+        const canvas = document.getElementById('colorWheel');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const lightnessSlider = document.getElementById('lightness-slider');
+        const colorPreview = document.getElementById('color-preview');
+        const hexOutput = document.getElementById('hex-output');
+        const rgbOutput = document.getElementById('rgb-output');
+        const hslOutput = document.getElementById('hsl-output');
+        const copyMessage = document.getElementById('copy-message');
+
+        // Текущие компоненты HSL (Hue, Saturation, Lightness)
+        let H = 0; // Оттенок: 0-360
+        let S = 100; // Насыщенность: 0-100
+        let L = 50; // Яркость: 0-100
+
+        // --- Вспомогательные функции для конвертации цветов ---
+
+        /**
+         * Конвертирует HSL (0-360, 0-100, 0-100) в RGB (0-255, 0-255, 0-255).
+         * @param {number} h - Оттенок (0-360)
+         * @param {number} s - Насыщенность (0-100)
+         * @param {number} l - Яркость (0-100)
+         * @returns {{r: number, g: number, b: number}} Объект RGB
+         */
+        function hslToRgb(h, s, l) {
+            s /= 100;
+            l /= 100;
+
+            let c = (1 - Math.abs(2 * l - 1)) * s,
+                x = c * (1 - Math.abs((h / 60) % 2 - 1)),
+                m = l - c / 2,
+                r = 0,
+                g = 0,
+                b = 0;
+
+            if (0 <= h && h < 60) { r = c; g = x; b = 0; }
+            else if (60 <= h && h < 120) { r = x; g = c; b = 0; }
+            else if (120 <= h && h < 180) { r = 0; g = c; b = x; }
+            else if (180 <= h && h < 240) { r = 0; g = x; b = c; }
+            else if (240 <= h && h < 300) { r = x; g = 0; b = c; }
+            else if (300 <= h && h < 360) { r = c; g = 0; b = x; }
+
+            r = Math.round((r + m) * 255);
+            g = Math.round((g + m) * 255);
+            b = Math.round((b + m) * 255);
+
+            return { r, g, b };
+        }
+
+        /**
+         * Конвертирует RGB (0-255) в HEX.
+         * @param {number} r - Красный
+         * @param {number} g - Зеленый
+         * @param {number} b - Синий
+         * @returns {string} HEX код
+         */
+        function rgbToHex(r, g, b) {
+            const toHex = (c) => c.toString(16).padStart(2, '0');
+            return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+        }
+
+        /**
+         * Конвертирует RGB (0-255) в HSL (0-360, 0-100, 0-100).
+         * Используется для определения H/S при клике на колесо.
+         * @param {number} r - Красный
+         * @param {number} g - Зеленый
+         * @param {number} b - Синий
+         * @returns {{h: number, s: number, l: number}} Объект HSL
+         */
+        function rgbToHsl(r, g, b) {
+            r /= 255;
+            g /= 255;
+            b /= 255;
+
+            let max = Math.max(r, g, b), min = Math.min(r, g, b);
+            let h, s, l = (max + min) / 2;
+
+            if (max === min) {
+                h = s = 0; // achromatic
+            } else {
+                let d = max - min;
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                switch (max) {
+                    case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                    case g: h = (b - r) / d + 2; break;
+                    case b: h = (r - g) / d + 4; break;
+                }
+                h /= 6;
+            }
+
+            return {
+                h: Math.round(h * 360),
+                s: Math.round(s * 100),
+                l: Math.round(l * 100)
+            };
+        }
+
+        // --- Логика Колеса (Canvas) ---
+
+        let isDrawing = false;
+        const radius = canvas.width / 2;
+        const center = radius;
+
+        /**
+         * Рисует цветовой круг на canvas.
+         */
+        function drawColorWheel() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const imageData = ctx.createImageData(canvas.width, canvas.height);
+            const data = imageData.data;
+
+            for (let x = 0; x < canvas.width; x++) {
+                for (let y = 0; y < canvas.height; y++) {
+                    const dx = x - center;
+                    const dy = y - center;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance <= radius) {
+                        // Рассчитываем Угол (Hue) и Радиус (Saturation)
+                        let hue = (Math.atan2(dy, dx) * 180 / Math.PI);
+                        if (hue < 0) hue += 360;
+
+                        let sat = (distance / radius) * 100;
+                        
+                        // Используем фиксированную яркость 50% для колеса
+                        const { r, g, b } = hslToRgb(hue, sat, 50);
+
+                        const index = (y * canvas.width + x) * 4;
+                        data[index] = r;      // R
+                        data[index + 1] = g;  // G
+                        data[index + 2] = b;  // B
+                        data[index + 3] = 255; // Alpha
+                    }
+                }
+            }
+
+            ctx.putImageData(imageData, 0, 0);
+
+            // Добавляем круг-маркер для текущего выбранного H/S
+            drawSelectorMarker();
+        }
+
+        /**
+         * Рисует маркер выбранного цвета на колесе.
+         */
+        function drawSelectorMarker() {
+            // Конвертируем текущие H/S обратно в координаты
+            const angleRad = H * Math.PI / 180;
+            const dist = (S / 100) * radius;
+
+            const x = center + dist * Math.cos(angleRad) * (H >= 90 && H < 270 ? -1 : 1);
+            const y = center + dist * Math.sin(angleRad) * (H >= 90 && H < 270 ? -1 : 1);
+            
+            // Если HSL(0, 0, L), то маркер в центре
+            if (S === 0) {
+                 ctx.beginPath();
+                 ctx.arc(center, center, radius, 0, 2 * Math.PI, false);
+                 ctx.clip(); // Обрезаем область для рисования маркера
+            }
+
+
+            // Рисуем кольцо (внешняя граница)
+            ctx.beginPath();
+            ctx.arc(x, y, 10, 0, 2 * Math.PI, false);
+            ctx.strokeStyle = '#000000'; // Черный контур
+            ctx.lineWidth = 4;
+            ctx.stroke();
+
+            // Рисуем внутренний круг
+            ctx.beginPath();
+            ctx.arc(x, y, 8, 0, 2 * Math.PI, false);
+            ctx.strokeStyle = '#ffffff'; // Белый контур
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+
+        /**
+         * Обработчик выбора цвета на колесе.
+         * @param {number} x - Координата X клика относительно canvas
+         * @param {number} y - Координата Y клика относительно canvas
+         */
+        function pickColor(x, y) {
+            const dx = x - center;
+            const dy = y - center;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance <= radius) {
+                // Получаем цвет из ImageData (чтобы корректно работать с Lightness=50)
+                const imageData = ctx.getImageData(x, y, 1, 1).data;
+                const r = imageData[0];
+                const g = imageData[1];
+                const b = imageData[2];
+
+                // Конвертируем RGB пикселя в HSL, чтобы получить H и S
+                const hsl = rgbToHsl(r, g, b);
+                
+                // Присваиваем новые H и S, оставляя текущую L
+                H = hsl.h;
+                S = hsl.s;
+
+                updateDisplay();
+                drawColorWheel(); // Перерисовываем маркер
+            }
+        }
+
+        /**
+         * Обновляет все элементы интерфейса с текущим цветом (H, S, L).
+         */
+        function updateDisplay() {
+            const { r, g, b } = hslToRgb(H, S, L);
+            const hex = rgbToHex(r, g, b);
+            const rgbString = `rgb(${r}, ${g}, ${b})`;
+            const hslString = `hsl(${H}, ${S}%, ${L}%)`;
+
+            // Предпросмотр цвета
+            colorPreview.style.backgroundColor = rgbString;
+            
+            // Обновление кодировок
+            hexOutput.textContent = hex.toUpperCase();
+            rgbOutput.textContent = rgbString;
+            hslOutput.textContent = hslString;
+
+            // Обновление цвета ползунка яркости
+            lightnessSlider.style.borderColor = rgbString;
+
+            // Перерисовать колесо для обновления маркера
+            drawColorWheel();
+        }
+
+        // --- Обработчики событий ---
+
+        function handlePointerDown(e) {
+            isDrawing = true;
+            e.preventDefault();
+            const { x, y } = getCanvasCoords(e);
+            pickColor(x, y);
+        }
+
+        function handlePointerMove(e) {
+            if (!isDrawing) return;
+            e.preventDefault();
+            const { x, y } = getCanvasCoords(e);
+            pickColor(x, y);
+        }
+
+        function handlePointerUp() {
+            isDrawing = false;
+        }
+
+        function getCanvasCoords(e) {
+            const rect = canvas.getBoundingClientRect();
+            let x, y;
+
+            if (e.touches && e.touches.length > 0) {
+                // Touch event
+                x = e.touches[0].clientX - rect.left;
+                y = e.touches[0].clientY - rect.top;
+            } else {
+                // Mouse event
+                x = e.clientX - rect.left;
+                y = e.clientY - rect.top;
+            }
+            
+            // Масштабирование координат
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+
+            return { x: x * scaleX, y: y * scaleY };
+        }
+
+        // События для колеса (поддержка мыши и тача)
+        canvas.addEventListener('mousedown', handlePointerDown);
+        canvas.addEventListener('mousemove', handlePointerMove);
+        window.addEventListener('mouseup', handlePointerUp);
+
+        canvas.addEventListener('touchstart', handlePointerDown, { passive: false });
+        canvas.addEventListener('touchmove', handlePointerMove, { passive: false });
+        window.addEventListener('touchend', handlePointerUp);
+
+        // Событие для ползунка яркости
+        lightnessSlider.addEventListener('input', (e) => {
+            L = parseInt(e.target.value);
+            updateDisplay();
+        });
+
+        // --- Логика Копирования ---
+
+        /**
+         * Копирует текст в буфер обмена и показывает сообщение.
+         * @param {string} text - Текст для копирования
+         */
+        function copyToClipboard(text) {
+            // Используем document.execCommand('copy') как надежный fallback
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            
+            try {
+                document.execCommand('copy');
+                // Анимация сообщения
+                copyMessage.textContent = `${text} скопирован!`;
+                copyMessage.classList.add('active');
+                
+                // Удаляем сообщение через 1.5 секунды
+                setTimeout(() => {
+                    copyMessage.classList.remove('active');
+                }, 1500);
+
+            } catch (err) {
+                console.error('Не удалось скопировать текст: ', err);
+            }
+            document.body.removeChild(textarea);
+        }
+
+        // Добавляем слушатели клика на блоки с кодами
+        document.querySelectorAll('[data-copy-target]').forEach(element => {
+            element.addEventListener('click', (e) => {
+                const target = element.getAttribute('data-copy-target');
+                let textToCopy = '';
+
+                if (target === 'hex') {
+                    textToCopy = hexOutput.textContent;
+                } else if (target === 'rgb') {
+                    textToCopy = rgbOutput.textContent;
+                } else if (target === 'hsl') {
+                    textToCopy = hslOutput.textContent;
+                }
+                
+                if (textToCopy) {
+                    copyToClipboard(textToCopy);
+                }
+            });
+        });
+
+        // --- Инициализация ---
+
+        // Адаптивное изменение размера canvas (для Retina и лучшего качества)
+        function resizeCanvas() {
+            const displaySize = canvas.offsetWidth;
+            const pixelRatio = window.devicePixelRatio || 1;
+            
+            // Устанавливаем размер в пикселях для Canvas, чтобы он был четким
+            canvas.width = displaySize * pixelRatio;
+            canvas.height = displaySize * pixelRatio;
+            
+            // Масштабируем контекст для соответствия логическим размерам
+            ctx.scale(pixelRatio, pixelRatio);
+
+            // Обновляем глобальные переменные радиуса
+            radius = displaySize / 2;
+            center = radius;
+
+            drawColorWheel();
+        }
+
+        // Инициализация при загрузке
+        window.addEventListener('load', () => {
+            resizeCanvas();
+            updateDisplay();
+        });
+
+        // Обработка изменения размера окна
+        window.addEventListener('resize', resizeCanvas);
+
+    </script>
+</body>
+</html>
+

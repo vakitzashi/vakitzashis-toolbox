@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pass-Port</title>
+    <!-- Подключение Tailwind CSS для стилей -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Настройка шрифта Inter и темной темы с неоновыми акцентами -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
+
+        /* Обновленные переменные для красной гаммы */
+        :root {
+            --neon-red: #ff0000; /* Ярко-красный для основного акцента */
+            --neon-pink: #ff1493; /* Глубокий розовый/фуксия для вторичного акцента */
+            --dark-bg: #111827;
+            --mid-bg: #1f2937;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            font-family: 'Space Mono', monospace;
+            color: #e5e7eb; /* Light gray text */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative; /* Нужно для ::before */
+        }
+        
+        /* CRT/Scanline Effect: Добавляем эффект старого ТВ */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Позволяет взаимодействовать с элементами под оверлеем */
+            z-index: 1000;
+            /* Горизонтальные полосы */
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.15),
+                rgba(0, 0, 0, 0.15) 1px,
+                transparent 1px,
+                transparent 3px
+            );
+            /* Легкое мерцание */
+            animation: flicker 0.15s infinite alternate;
+        }
+
+        @keyframes flicker {
+            0% { opacity: 0.98; }
+            50% { opacity: 1; }
+            100% { opacity: 0.98; }
+        }
+
+        /* Общая стилизация карточки */
+        .card {
+            background-color: var(--mid-bg);
+            border: 1px solid var(--neon-red);
+            box-shadow: 0 0 15px var(--neon-red);
+            max-width: 480px;
+            width: 100%;
+        }
+
+        /* Стилизация свитчей */
+        .switch-container input[type="radio"] {
+            display: none;
+        }
+
+        .home-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        .home-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(102, 126, 234, 0.4);
+        }
+        .switch-container label {
+            flex-grow: 1;
+            text-align: center;
+            padding: 8px 0;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            color: #9ca3af; /* Gray text */
+            border: 1px solid transparent;
+        }
+
+        .switch-container input[type="radio"]:checked + label {
+            background-color: var(--neon-pink); /* Используем вторичный акцент */
+            color: var(--dark-bg);
+            font-weight: bold;
+            border-color: var(--neon-pink);
+            box-shadow: 0 0 5px var(--neon-pink);
+        }
+
+        /* Стилизация слайдеров */
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            background: #374151;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--neon-red);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 5px var(--neon-red);
+        }
+
+        /* Кнопки */
+        .neon-button {
+            background-color: transparent;
+            border: 2px solid var(--neon-red);
+            color: var(--neon-red);
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 8px var(--neon-red);
+        }
+
+        .neon-button:hover {
+            background-color: var(--neon-red);
+            color: var(--dark-bg);
+            box-shadow: 0 0 20px var(--neon-red);
+        }
+
+        /* Поле вывода пароля */
+        #password-output {
+            background-color: #0d0d1a; /* Even darker background */
+            border: 2px solid var(--neon-pink); /* Используем вторичный акцент для рамки */
+            color: var(--neon-red);
+            text-shadow: 0 0 5px var(--neon-red);
+            font-size: 1.25rem;
+            min-height: 56px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            word-break: break-all;
+            user-select: none;
+            transition: all 0.1s ease;
+        }
+
+        #password-output:active {
+            box-shadow: 0 0 10px var(--neon-pink), inset 0 0 10px var(--neon-pink);
+        }
+
+        /* Стили для чекбоксов */
+        .neon-checkbox {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--neon-red);
+            background-color: transparent;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 8px;
+            position: relative;
+        }
+
+        .neon-checkbox:checked {
+            background-color: var(--neon-red);
+            box-shadow: 0 0 5px var(--neon-red);
+        }
+
+        .neon-checkbox:checked::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--dark-bg);
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+    </style>
+</head>
+<body>
+    <a href="index.html" class="home-btn">← Главная</a>
+
+<div id="app" class="card p-6 rounded-xl space-y-6">
+    <h1 class="text-3xl font-bold text-center uppercase" style="font-family: 'Orbitron', sans-serif; color: var(--neon-red); text-shadow: 0 0 10px var(--neon-red);">Pass-Port</h1>
+
+    <!-- Блок вывода пароля -->
+    <div>
+        <div id="password-output" class="p-3 rounded-lg text-center font-bold">
+            Нажмите 🔄 для генерации
+        </div>
+        <p id="copy-message" class="text-xs text-center mt-2 h-4 text-green-400 opacity-0 transition-opacity">Пароль скопирован!</p>
+    </div>
+
+    <!-- 1. Слайдер длины -->
+    <div class="space-y-2">
+        <label class="text-sm block text-gray-400 flex justify-between">
+            Длина пароля: <span id="length-value" class="text-white">16</span>
+        </label>
+        <input type="range" id="length-slider" min="4" max="64" value="16" oninput="updateSettings();">
+    </div>
+
+    <!-- 2. Слайдер жёсткости -->
+    <div class="space-y-2">
+        <label class="text-sm block text-gray-400 flex justify-between">
+            Жёсткость (logic \ chaotic): <span id="hardness-value" class="text-white">50</span>
+        </label>
+        <input type="range" id="hardness-slider" min="1" max="100" value="50" oninput="updateSettings();">
+    </div>
+
+    <!-- 3. Switch: Тип символов (Буквы, Буквы+Цифры, Только Цифры) -->
+    <div class="space-y-2">
+        <label class="text-sm block text-gray-400">Включать:</label>
+        <div class="switch-container flex space-x-2 p-1 rounded-lg bg-gray-700">
+            <input type="radio" id="char-type-alpha" name="char-type" value="alpha" checked onchange="updateSettings();">
+            <label for="char-type-alpha">ABC</label>
+
+            <input type="radio" id="char-type-alphanum" name="char-type" value="alphanum" onchange="updateSettings();">
+            <label for="char-type-alphanum">A1C</label>
+
+            <input type="radio" id="char-type-numeric" name="char-type" value="numeric" onchange="updateSettings();">
+            <label for="char-type-numeric">123</label>
+        </div>
+    </div>
+
+    <!-- 4. Switch: Регистр (Нижний, Смешанный, Верхний) -->
+    <div class="space-y-2">
+        <label class="text-sm block text-gray-400">Регистр:</label>
+        <div class="switch-container flex space-x-2 p-1 rounded-lg bg-gray-700">
+            <input type="radio" id="case-type-lower" name="case-type" value="lower" checked onchange="updateSettings();">
+            <label for="case-type-lower">abc</label>
+
+            <input type="radio" id="case-type-mixed" name="case-type" value="mixed" onchange="updateSettings();">
+            <label for="case-type-mixed">AbC</label>
+
+            <input type="radio" id="case-type-upper" name="case-type" value="upper" onchange="updateSettings();">
+            <label for="case-type-upper">ABC</label>
+        </div>
+    </div>
+
+    <!-- 5. Чекбоксы и Исключения -->
+    <div class="space-y-3 p-4 border border-gray-600 rounded-lg">
+        <h3 class="text-lg font-bold text-white mb-2">Опции:</h3>
+        
+        <!-- 5.1 Добавить спецсимволы -->
+        <div class="flex items-center">
+            <input type="checkbox" id="include-special" class="neon-checkbox" onchange="updateSettings();">
+            <label for="include-special" class="text-sm text-gray-300">Добавить спецсимволы (например, !@#$%)</label>
+        </div>
+
+        <!-- 5.2 Исключить символы -->
+        <div class="space-y-2">
+            <label for="exclude-chars" class="text-sm block text-gray-300">Исключить символы:</label>
+            <input type="text" id="exclude-chars" placeholder="Например: l, 1, O, 0" class="w-full p-2 rounded bg-gray-800 text-white border border-gray-600 focus:border-neon-red focus:ring-1 focus:ring-neon-red" oninput="updateSettings();">
+        </div>
+    </div>
+
+    <!-- Кнопка генерации -->
+    <button id="generate-button" onclick="generatePassword();" class="neon-button w-full py-3 rounded-lg flex items-center justify-center space-x-2">
+        <span class="text-xl">🔄</span>
+        <span>СГЕНЕРИРОВАТЬ ПАРОЛЬ</span>
+    </button>
+</div>
+
+<script>
+    // Инициализация констант символьных наборов
+    const LOWERCASE = 'abcdefghijklmnopqrstuvwxyz';
+    const UPPERCASE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const NUMBERS = '0123456789';
+    const SPECIAL = '!@#$%^&*()_+=-`~?><,./:;|\\]{}[]';
+
+    // Константы для логики произносимых паролей (Pronounceable/Memorable)
+    const VOWELS_LOWER = 'aeiou';
+    const CONSONANTS_LOWER = 'bcdfghjklmnpqrstvwxyz';
+
+    let currentSettings = {};
+
+    /**
+     * Возвращает случайный символ из заданного пула.
+     * @param {string} pool Строка символов.
+     * @returns {string} Случайный символ.
+     */
+    function getRandomChar(pool) {
+        if (pool.length === 0) return '';
+        const randomIndex = Math.floor(Math.random() * pool.length);
+        return pool[randomIndex];
+    }
+
+    /**
+     * Обновляет значения слайдеров на UI и сохраняет текущие настройки.
+     */
+    function updateSettings() {
+        const length = parseInt(document.getElementById('length-slider').value);
+        const hardness = parseInt(document.getElementById('hardness-slider').value);
+
+        document.getElementById('length-value').textContent = length;
+        document.getElementById('hardness-value').textContent = hardness;
+
+        // Сбор текущих настроек
+        currentSettings = {
+            length: length,
+            hardness: hardness,
+            charType: document.querySelector('input[name="char-type"]:checked').value,
+            caseType: document.querySelector('input[name="case-type"]:checked').value,
+            includeSpecial: document.getElementById('include-special').checked,
+            excludeChars: document.getElementById('exclude-chars').value.trim()
+        };
+    }
+
+    /**
+     * Создает финальный набор символов для генерации, исключая запрещенные.
+     * @returns {string} Строка всех доступных символов.
+     */
+    function buildCharacterPool() {
+        let pool = '';
+        const charType = currentSettings.charType;
+        const caseType = currentSettings.caseType;
+
+        // 1. Добавление букв и цифр по типу
+        if (charType === 'alpha' || charType === 'alphanum') {
+            if (caseType === 'lower' || caseType === 'mixed') {
+                pool += LOWERCASE;
+            }
+            if (caseType === 'upper' || caseType === 'mixed') {
+                pool += UPPERCASE;
+            }
+        }
+        if (charType === 'numeric' || charType === 'alphanum') {
+            pool += NUMBERS;
+        }
+
+        // 2. Добавление спецсимволов
+        if (currentSettings.includeSpecial) {
+            pool += SPECIAL;
+        }
+
+        // 3. Исключение заданных символов (из поля ввода)
+        const excluded = currentSettings.excludeChars;
+        if (excluded) {
+            const pattern = new RegExp(`[${escapeRegExp(excluded)}]`, 'g');
+            pool = pool.replace(pattern, '');
+        }
+
+        return pool;
+    }
+
+    /**
+     * Экранирует спецсимволы для использования в RegExp.
+     * @param {string} string Строка для экранирования.
+     * @returns {string} Экранированная строка.
+     */
+    function escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    /**
+     * Основная функция генерации пароля.
+     */
+    function generatePassword() {
+        updateSettings(); 
+        
+        const length = currentSettings.length;
+        const hardness = currentSettings.hardness;
+        const charType = currentSettings.charType;
+        const caseType = currentSettings.caseType;
+
+        // 1. Построение пула для 'Хаотичной' части
+        const fullPool = buildCharacterPool();
+        if (fullPool.length === 0) {
+            document.getElementById('password-output').textContent = 'Ошибка: Выберите хотя бы один тип символов.';
+            return;
+        }
+
+        let passwordChars = [];
+
+        // Проверка, возможна ли генерация произносимых паролей (только если выбраны буквы)
+        const canBePronounceable = (charType === 'alpha' || charType === 'alphanum') && (fullPool.includes(LOWERCASE[0]) || fullPool.includes(UPPERCASE[0])); 
+
+        // Определение пропорций: N/100 - Хаос, (100-N)/100 - Логика
+        const ratioChaotic = hardness / 100;
+        const numChaotic = Math.round(length * ratioChaotic);
+        const numPronounceable = length - numChaotic;
+
+
+        // --- 2. Хаотичная Генерация (Полная Случайность) ---
+        for (let i = 0; i < numChaotic; i++) {
+            passwordChars.push(getRandomChar(fullPool));
+        }
+
+
+        // --- 3. Произносимая Генерация (Слоговая/Логичная) ---
+        if (canBePronounceable && numPronounceable > 0) {
+            let pronounceableChars = [];
+            
+            let vowelsPool = '';
+            let consonantsPool = '';
+            
+            // Формирование C/V пулов с учетом регистра
+            if (caseType === 'lower' || caseType === 'mixed') {
+                vowelsPool += VOWELS_LOWER;
+                consonantsPool += CONSONANTS_LOWER;
+            }
+            if (caseType === 'upper' || caseType === 'mixed') {
+                vowelsPool += VOWELS_LOWER.toUpperCase();
+                consonantsPool += CONSONANTS_LOWER.toUpperCase();
+            }
+
+            // Исключение запрещенных символов из C/V пулов
+            const excluded = currentSettings.excludeChars;
+            if (excluded) {
+                const pattern = new RegExp(`[${escapeRegExp(excluded)}]`, 'g');
+                vowelsPool = vowelsPool.replace(pattern, '');
+                consonantsPool = consonantsPool.replace(pattern, '');
+            }
+
+            let isVowelTurn = Math.random() < 0.5; // Случайный старт (гласная или согласная)
+
+            for (let i = 0; i < numPronounceable; i++) {
+                let poolToUse = isVowelTurn ? vowelsPool : consonantsPool;
+                let char = '';
+
+                // Если С/Г пул пуст (например, все гласные исключены), 
+                // используем полный пул для сохранения длины
+                if (poolToUse.length === 0) {
+                    char = getRandomChar(fullPool); 
+                    // Не переключаем ход, так как логика С-Г нарушена
+                } else {
+                    char = getRandomChar(poolToUse);
+                    isVowelTurn = !isVowelTurn; // Переключаем ход
+                }
+                
+                pronounceableChars.push(char);
+            }
+
+            passwordChars = passwordChars.concat(pronounceableChars);
+        }
+        
+        
+        // --- 4. Финальное Перемешивание ---
+        // Пароль не перемешивается только при минимальной жёсткости (1), 
+        // чтобы сохранить логичную последовательность "слова"
+        if (hardness > 1 || !canBePronounceable) {
+            // Перемешиваем (Chaotic + Pronounceable) для промежуточных значений
+            for (let i = passwordChars.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [passwordChars[i], passwordChars[j]] = [passwordChars[j], passwordChars[i]];
+            }
+        }
+        
+        document.getElementById('password-output').textContent = passwordChars.join('');
+    }
+
+    /**
+     * Функция для копирования пароля в буфер обмена.
+     * @param {Event} event Событие клика.
+     */
+    function copyPassword(event) {
+        const passwordElement = event.currentTarget;
+        const password = passwordElement.textContent.trim();
+        const copyMessage = document.getElementById('copy-message');
+
+        // Проверяем, что это не начальный текст
+        if (password === 'Нажмите 🔄 для генерации' || password.includes('Ошибка')) {
+            return;
+        }
+
+        // Используем document.execCommand('copy') для совместимости с iframe
+        const textarea = document.createElement('textarea');
+        textarea.value = password;
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+            document.execCommand('copy');
+            // Показываем сообщение об успешном копировании
+            copyMessage.classList.remove('opacity-0');
+            copyMessage.classList.add('opacity-100');
+            setTimeout(() => {
+                copyMessage.classList.remove('opacity-100');
+                copyMessage.classList.add('opacity-0');
+            }, 1500);
+        } catch (err) {
+            console.error('Не удалось скопировать текст: ', err);
+            // Если не удалось, можно показать короткое сообщение об ошибке
+        } finally {
+            document.body.removeChild(textarea);
+        }
+    }
+
+    // Инициализация:
+    window.onload = function() {
+        // Устанавливаем обработчик клика для копирования
+        document.getElementById('password-output').addEventListener('click', copyPassword);
+        
+        // Инициализируем настройки при загрузке
+        updateSettings();
+    };
+
+</script>
+
+</body>
+</html>
+
