@@ -23,8 +23,7 @@
 
 ## 🌐 GitHub Pages
 
-Проект автоматически развернут на GitHub Pages. Доступен по ссылке:
-https://[ваш-username].github.io/vakitzashi-toolbox/
+Проект развернут на GitHub Pages. Доступен по ссылке: [ТЫК](https://vakitzashi.github.io/vakitzashis-toolbox/)
 
 ## 🔧 Технологии
 
@@ -40,9 +39,10 @@ https://[ваш-username].github.io/vakitzashi-toolbox/
 
 ## 👨‍💻 Автор
 
-Vakitzashi - создатель коллекции полезных инструментов
+Vakitzashi - создатель коллекции инструментов.
 
 ---
 
-**Наслаждайтесь полезными инструментами! 🎉**
+**Наслаждайтесь! 🎉**
+
 
