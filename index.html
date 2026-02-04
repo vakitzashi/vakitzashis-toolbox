@@ -9,259 +9,273 @@
     <style>
         * {
             font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
         
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: radial-gradient(circle at top, #1a1c2c 0%, #0d0e14 100%);
+            color: #e2e8f0;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
             padding: 20px;
         }
 
         .welcome-section {
             text-align: center;
-            color: white;
-            margin-bottom: 60px;
-            animation: fadeInDown 0.8s ease-out;
+            max-width: 800px;
+            margin-bottom: 40px;
+            width: 100%;
         }
 
         .welcome-section h1 {
-            font-size: 3.5rem;
+            font-size: clamp(2.2rem, 8vw, 3.5rem);
             font-weight: 700;
+            margin-bottom: 20px;
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .intro-container {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .intro-trigger {
+            display: none;
+            width: 100%;
+            padding: 18px;
+            background: rgba(129, 140, 248, 0.1);
+            color: #a5b4fc;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            text-align: center;
+            font-size: 1rem;
+        }
+
+        .intro-content {
+            padding: 25px;
+            font-size: 1.05rem;
+            line-height: 1.7;
+            color: #cbd5e1;
+        }
+
+        .intro-content p {
             margin-bottom: 15px;
-            text-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
 
-        .welcome-section p {
-            font-size: 1.3rem;
-            margin-bottom: 10px;
-            opacity: 0.95;
+        .intro-content a {
+            color: #818cf8;
+            text-decoration: underline;
+            text-underline-offset: 4px;
+            transition: color 0.2s;
         }
 
-        .welcome-section .subtitle {
-            font-size: 1.1rem;
-            opacity: 0.85;
-            margin-top: 20px;
+        .intro-content a:hover {
+            color: #c084fc;
         }
 
         .apps-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px;
-            max-width: 1400px;
+            gap: 20px;
+            max-width: 1200px;
             width: 100%;
-            margin-bottom: 40px;
-            animation: fadeInUp 0.8s ease-out;
+            margin-bottom: 60px;
         }
 
         .app-card {
-            background: white;
-            border-radius: 16px;
+            background: #1e293b;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
             padding: 30px;
             text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             text-decoration: none;
-            display: flex;
+            display: flex !important;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 280px;
+            min-height: 220px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            -webkit-transform: translateZ(0);
         }
 
         .app-card:hover {
             transform: translateY(-8px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            border-color: #818cf8;
+            background: #243049;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
         }
 
         .app-icon {
-            font-size: 3.5rem;
+            font-size: 3rem;
             margin-bottom: 15px;
-            display: block;
+            display: block !important;
         }
 
         .app-card h3 {
-            font-size: 1.4rem;
+            font-size: 1.3rem;
             font-weight: 600;
+            color: #f8fafc;
             margin-bottom: 10px;
-            color: #333;
-            transition: color 0.3s ease;
-        }
-
-        .app-card:hover h3 {
-            color: white;
+            display: block !important;
         }
 
         .app-card p {
             font-size: 0.95rem;
-            color: #666;
-            line-height: 1.5;
-            margin: 0;
-            transition: color 0.3s ease;
-        }
-
-        .app-card:hover p {
-            color: rgba(255, 255, 255, 0.9);
-        }
-
-        @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            color: #94a3b8;
+            line-height: 1.4;
+            display: block !important;
         }
 
         .footer {
-            color: white;
+            width: 100%;
+            max-width: 600px;
+            margin-top: auto;
             text-align: center;
-            margin-top: 40px;
-            opacity: 0.85;
-            font-size: 0.9rem;
+            padding: 40px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .social-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .social-btn {
+            padding: 12px 28px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-tg { background: #229ED9; color: white; }
+        .btn-gh { background: #333; color: white; border: 1px solid #444; }
+
+        .social-btn:hover {
+            transform: scale(1.05);
+            filter: brightness(1.1);
         }
 
         @media (max-width: 768px) {
-            .welcome-section h1 {
-                font-size: 2.5rem;
-            }
-
-            .welcome-section p {
-                font-size: 1.1rem;
-            }
-
-            .apps-grid {
-                grid-template-columns: 1fr;
-                gap: 20px;
-            }
-
-            .app-card {
-                min-height: 250px;
-            }
-
-            .app-icon {
-                font-size: 3rem;
-            }
+            .intro-trigger { display: block; }
+            .intro-content { display: none; padding: 20px; font-size: 0.95rem; }
+            .intro-container.active .intro-content { display: block; }
+            .intro-container.active .intro-trigger { border-bottom: 1px solid rgba(255,255,255,0.1); }
+            
+            .apps-grid { grid-template-columns: 1fr; }
+            .social-buttons { flex-direction: column; padding: 0 20px; }
         }
     </style>
 </head>
 <body>
     <div class="welcome-section">
         <h1>🛠️ Vakitzashi Toolbox</h1>
-        <p>Добро пожаловать в мою личную коллекцию полезных инструментов!</p>
-        <p class="subtitle">Привет! Меня зовут Vakitzashi.
-Я не «айтишник», но активно изучаю возможности кода и ИИ. Иногда я создаю инструменты, которые помогают мне в рутине и работе.
-
-Идея делиться ими с другими появилась благодаря сайту https://voidwaifu.github.io/
- — он очень помог мне с настройкой WireGuard 🩷 и стал хорошим примером того, как полезные вещи могут быть простыми и доступными.
-
-Все инструменты, собранные здесь, бесплатны, безлимитны и без рекламы.
-Кроме того, они безопасны: я не собираю никакие данные (да и, честно говоря, всё равно не знал бы, что с ними делать 😄).
-
-Буду рад, если эти инструменты окажутся для вас полезными.
-А если у вас есть предложения, пожелания или просто хочется что-то сказать — вот мои контакты:
-
-Telegram: https://t.me/vakitzashi
-
-GitHub: https://github.com/vakitzashi</p>
+        <div class="intro-container" id="introBox">
+            <button class="intro-trigger" onclick="toggleIntro()">👋 О проекте (нажми, чтобы прочитать)</button>
+            <div class="intro-content">
+                <p>Привет! Меня зовут Vakitzashi. <br>
+                Я активно изучаю возможности кода и ИИ. Иногда я создаю инструменты, которые помогают мне в рутине и работе.</p>
+                
+                <p>Идея делиться ими с другими появилась благодаря сайту <a href="https://voidwaifu.github.io/" target="_blank">VoidWaifu</a> — он очень помог мне с настройкой WireGuard 🩷 и стал хорошим примером того, как полезные вещи могут быть простыми и доступными.</p>
+                
+                <p>Все инструменты, собранные здесь, бесплатны, безлимитны и без рекламы. Кроме того, они безопасны: я не собираю никакие данные (да и, честно говоря, всё равно не знал бы, что с ними делать 😄).</p>
+                
+                <p>Буду рад, если эти инструменты окажутся для вас полезными. А если у вас есть предложения, пожелания или просто хочется что-то сказать — мои контакты внизу 👇🏻</p>
+            </div>
+        </div>
     </div>
 
     <div class="apps-grid">
         <a href="Make PDF.html" class="app-card">
             <span class="app-icon">📄</span>
-            <h3>Make PDF</h3>
-            <p>Преобразование группы изображений в PDF-документы</p>
+            <h3>PIC2PDF</h3>
+            <p>Преобразование группы изображений в PDF-документы.</p>
         </a>
-
         <a href="PDF Compresser.html" class="app-card">
             <span class="app-icon">📦</span>
             <h3>PDF Compressor</h3>
-            <p>Сжатие PDF-файлов без потери качества</p>
+            <p>Сжатие PDF-файлов без потери качества. Может потребоваться вам после первого приложения.</p>
         </a>
-
         <a href="T2PDF.html" class="app-card">
             <span class="app-icon">📝</span>
             <h3>T2PDF</h3>
-            <p>Конвертация текста из Markdown в PDF</p>
+            <p>Конвертация текста из Markdown в PDF. Превращает выдачу ИИ в нормальный документ.</p>
         </a>
-
         <a href="Image Processor.html" class="app-card">
             <span class="app-icon">🖼️</span>
             <h3>Image Processor</h3>
-            <p>Инструмент для обработки изображений: сжатие\ изменение разрешения\ смена формата</p>
+            <p>Сжатие, изменение разрешения и смена формата изображения.</p>
         </a>
-
         <a href="Blind_dog.html" class="app-card">
             <span class="app-icon">🐕</span>
             <h3>Blind Dog</h3>
-            <p>Инструмент для шифровки изображений методом сдвига пикселей</p>
+            <p>Шифровка изображений методом сдвига пикселей, и расшифровка обратно. Запишите уникальный ключ.</p>
         </a>
-
         <a href="Wallpaper Gen.html" class="app-card">
             <span class="app-icon">🖼️</span>
             <h3>Wallpaper Gen</h3>
-            <p>Генератор минималистичных фонов с настраиваемыми параметрами</p>
+            <p>Генератор минималистичных фонов различных цветов.</p>
         </a>
-
         <a href="Colors Harmony .html" class="app-card">
             <span class="app-icon">🎨</span>
             <h3>Colors Harmony</h3>
-            <p>Подбор гармоничных цветовых палитр</p>
+            <p>Подбор гармоничных цветовых палитр разного типа сочетаемости.</p>
         </a>
-
         <a href="HEX-colors.html" class="app-card">
             <span class="app-icon">🌈</span>
             <h3>HEX Colors</h3>
-            <p>Конвертер и подбор HEX кодов цветов</p>
+            <p>Конвертер и подбор HEX кодов.</p>
         </a>
-
         <a href="Coin Coverter .html" class="app-card">
             <span class="app-icon">💱</span>
             <h3>Coin Converter</h3>
-            <p>Конвертер валют в реальном времени</p>
+            <p>Конвертер валют в реальном времени.</p>
         </a>
-
         <a href="Pass-port.html" class="app-card">
             <span class="app-icon">🛂</span>
             <h3>Pass-Port</h3>
-            <p>Генератор паролей с множеством настроек</p>
+            <p>Генератор паролей с многообразными настройками.</p>
         </a>
-
         <a href="Protein Counter.html" class="app-card">
             <span class="app-icon">🥗</span>
             <h3>Protein Counter</h3>
-            <p>Подсчет белков и по DIAAS коэффициенту</p>
+            <p>Подсчет белков по DIAAS коэффициенту. Довольно нишевая штука.</p>
         </a>
-
         <a href="UTM-Gen.html" class="app-card">
             <span class="app-icon">🔗</span>
             <h3>UTM Generator</h3>
-            <p>Генератор UTM-меток для отслеживания ссылок</p>
+            <p>Генератор UTM-меток для ссылок. Полезно для рекламы.</p>
         </a>
     </div>
 
     <div class="footer">
-        <p>© 2026 Vakitzashi`s Toolbox - Коллекция полезных инструментов</p>
+        <div class="social-buttons">
+            <a href="https://t.me/vakitzashi" class="social-btn btn-tg" target="_blank">✈️ Telegram</a>
+            <a href="https://github.com/vakitzashi" class="social-btn btn-gh" target="_blank">💻 GitHub</a>
+        </div>
+        <p>© 2026 Vakitzashi`s Toolbox</p>
     </div>
+
+    <script>
+        function toggleIntro() {
+            document.getElementById('introBox').classList.toggle('active');
+        }
+    </script>
 </body>
 </html>
-
