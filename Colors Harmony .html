@@ -1,0 +1,551 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Цветовые гармонии</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #121212;
+            color: #E0E0E0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            max-width: 1400px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, #6a82fb, #fc5c7d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: text-gradient 5s ease-in-out infinite;
+        }
+
+        @keyframes text-gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .controls-and-results {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        @media (min-width: 1024px) {
+            .controls-and-results {
+                flex-direction: row;
+            }
+        }
+
+        .color-picker-section, .results-section {
+            background-color: #1e1e1e;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid #333;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .color-picker-section:hover, .results-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            padding-top: 100%;
+            margin: 0 auto 1.5rem;
+        }
+        
+        #colorWheel {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        #colorWheel:active {
+            transform: scale(0.95);
+        }
+
+        .selected-color-box {
+            width: 100%;
+            height: 50px;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            transition: background-color 0.5s ease;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+            border: 2px solid #333;
+        }
+
+        .results-section {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .harmony-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .harmony-set {
+            background-color: #2a2a2a;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            border: 1px solid #444;
+        }
+
+        .harmony-set:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .harmony-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #9c9c9c;
+        }
+
+        .color-palette {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .color-swatch {
+            width: 35px;
+            height: 35px;
+            border-radius: 0.5rem;
+            transition: transform 0.2s ease;
+            cursor: pointer;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+
+        .color-swatch:hover {
+            transform: scale(1.1);
+        }
+        
+        .color-swatch:hover::after {
+            content: attr(data-hex);
+            position: absolute;
+            bottom: -2.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #000;
+            color: #fff;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            white-space: nowrap;
+            font-size: 0.75rem;
+            opacity: 0;
+            animation: fadeIn 0.3s forwards;
+            pointer-events: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .flex-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .flex-col {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Colors Harmony</h1>
+        </div>
+        <div class="controls-and-results">
+            <div class="color-picker-section">
+                <h2 class="text-xl font-bold mb-4">Выбор цвета</h2>
+                <div class="canvas-container">
+                    <canvas id="colorWheel"></canvas>
+                </div>
+                <div class="flex-row items-center mb-4">
+                    <div class="selected-color-box" id="selectedColorBox"></div>
+                    <div class="flex-col">
+                        <span id="selectedName">Название: Неизвестно</span>
+                        <span id="selectedHex">HEX: #000000</span>
+                        <span id="selectedRgb">RGB: 0, 0, 0</span>
+                        <span id="selectedHsl">HSL: 0, 0%, 0%</span>
+                    </div>
+                </div>
+                <p class="text-sm text-gray-400">Кликните на цветовой круг, чтобы выбрать цвет.</p>
+            </div>
+            <div class="results-section">
+                <h2 class="text-xl font-bold mb-4">Гармоничные палитры</h2>
+                <div class="harmony-grid" id="harmonyGrid">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('colorWheel');
+        const ctx = canvas.getContext('2d');
+        let centerX, centerY, radius;
+
+        const selectedColorBox = document.getElementById('selectedColorBox');
+        const selectedNameSpan = document.getElementById('selectedName');
+        const selectedHexSpan = document.getElementById('selectedHex');
+        const selectedRgbSpan = document.getElementById('selectedRgb');
+        const selectedHslSpan = document.getElementById('selectedHsl');
+        const harmonyGrid = document.getElementById('harmonyGrid');
+
+        const harmonyNames = {
+            'analogous': 'Аналоговая',
+            'complementary': 'Комплементарная',
+            'triadic': 'Триада',
+            'split-complementary': 'Раздельно-комплементарная',
+            'alternative': 'Альтернативная',
+            'tetradic': 'Прямоугольная',
+            'square': 'Квадратная',
+            'hexadic': 'Шестицветная',
+            'monochromatic': 'Монохроматическая',
+            'warm': 'Тёплая',
+            'cool': 'Холодная',
+            'achromatic': 'Ахроматическая',
+            'achromatic_plus_complementary': 'Ахроматическая + Доп.'
+        };
+
+        const colorNamesDB = [
+            { name: "Красный", h: 0, range: 10 },
+            { name: "Оранжевый", h: 30, range: 15 },
+            { name: "Желтый", h: 60, range: 10 },
+            { name: "Лайм", h: 90, range: 15 },
+            { name: "Зеленый", h: 120, range: 10 },
+            { name: "Бирюзовый", h: 150, range: 15 },
+            { name: "Голубой", h: 180, range: 10 },
+            { name: "Синий", h: 210, range: 15 },
+            { name: "Фиолетовый", h: 240, range: 10 },
+            { name: "Пурпурный", h: 270, range: 15 },
+            { name: "Малиновый", h: 300, range: 10 },
+            { name: "Розовый", h: 330, range: 15 }
+        ];
+
+        function getColorName(h, s, l) {
+            if (s < 10 || l < 10) return "Оттенок серого";
+            if (l > 90) return "Белый";
+            if (l < 10) return "Черный";
+
+            let bestMatch = "Неизвестно";
+            let minDiff = 360;
+
+            colorNamesDB.forEach(color => {
+                const diff = Math.abs(h - color.h);
+                if (diff < minDiff) {
+                    minDiff = diff;
+                    bestMatch = color.name;
+                }
+            });
+
+            return bestMatch;
+        }
+
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            const size = Math.min(container.offsetWidth, window.innerHeight * 0.5);
+            canvas.width = size;
+            canvas.height = size;
+            centerX = canvas.width / 2;
+            centerY = canvas.height / 2;
+            radius = Math.min(centerX, centerY) - 10;
+            drawColorWheel();
+        }
+
+        function drawColorWheel() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const outerRadius = radius;
+            const innerRadius = 0;
+
+            for (let angle = 0; angle < 360; angle += 1) {
+                const startAngle = (angle - 0.5) * Math.PI / 180;
+                const endAngle = (angle + 0.5) * Math.PI / 180;
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, outerRadius, startAngle, endAngle);
+                ctx.closePath();
+                ctx.fillStyle = `hsl(${angle}, 100%, 50%)`;
+                ctx.fill();
+            }
+
+            const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, outerRadius);
+            gradient.addColorStop(0, 'white');
+            gradient.addColorStop(0.5, 'transparent');
+            gradient.addColorStop(1, 'black');
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, outerRadius, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+
+        function hslToRgb(h, s, l) {
+            s /= 100;
+            l /= 100;
+            let c = (1 - Math.abs(2 * l - 1)) * s,
+                x = c * (1 - Math.abs((h / 60) % 2 - 1)),
+                m = l - c / 2,
+                r = 0,
+                g = 0,
+                b = 0;
+            if (0 <= h && h < 60) {
+                r = c; g = x; b = 0;
+            } else if (60 <= h && h < 120) {
+                r = x; g = c; b = 0;
+            } else if (120 <= h && h < 180) {
+                r = 0; g = c; b = x;
+            } else if (180 <= h && h < 240) {
+                r = 0; g = x; b = c;
+            } else if (240 <= h && h < 300) {
+                r = x; g = 0; b = c;
+            } else if (300 <= h && h < 360) {
+                r = c; g = 0; b = x;
+            }
+            r = Math.round((r + m) * 255);
+            g = Math.round((g + m) * 255);
+            b = Math.round((b + m) * 255);
+            return [r, g, b];
+        }
+
+        function rgbToHsl(r, g, b) {
+            r /= 255;
+            g /= 255;
+            b /= 255;
+            let max = Math.max(r, g, b),
+                min = Math.min(r, g, b);
+            let h, s, l = (max + min) / 2;
+            if (max === min) {
+                h = s = 0;
+            } else {
+                let d = max - min;
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                switch (max) {
+                    case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                    case g: h = (b - r) / d + 2; break;
+                    case b: h = (r - g) / d + 4; break;
+                }
+                h /= 6;
+            }
+            return [h * 360, s * 100, l * 100];
+        }
+
+        function generateHarmonies(h, s, l) {
+            const harmonies = {};
+            harmonies['analogous'] = [
+                `hsl(${(h - 30 + 360) % 360}, ${s}%, ${l}%)`,
+                `hsl(${h}, ${s}%, ${l}%)`,
+                `hsl(${(h + 30) % 360}, ${s}%, ${l}%)`
+            ];
+            harmonies['complementary'] = [
+                `hsl(${h}, ${s}%, ${l}%)`,
+                `hsl(${(h + 180) % 360}, ${s}%, ${l}%)`
+            ];
+            harmonies['triadic'] = [
+                `hsl(${h}, ${s}%, ${l}%)`,
+                `hsl(${(h + 120) % 360}, ${s}%, ${l}%)`,
+                `hsl(${(h + 240) % 360}, ${s}%, ${l}%)`
+            ];
+            harmonies['split-complementary'] = [
+                `hsl(${h}, ${s}%, ${l}%)`,
+                `hsl(${(h + 150) % 360}, ${s}%, ${l}%)`,
+                `hsl(${(h + 210) % 360}, ${s}%, ${l}%)`
+            ];
+            harmonies['alternative'] = [
+                `hsl(${h}, ${s}%, ${l}%)`,
+                `hsl(${(h + 180) % 360}, ${s}%, ${l}%)`,
+                `hsl(${(h + 30) % 360}, ${s}%, ${l}%)`,
+                `hsl(${(h + 210) % 360}, ${s}%, ${l}%)`
+            ];
+            harmonies['tetradic'] = [
+                `hsl(${h}, ${s}%, ${l}%)`,
+                `hsl(${(h + 90) % 360}, ${s}%, ${l}%)`,
+                `hsl(${(h + 180) % 360}, ${s}%, ${l}%)`,
+                `hsl(${(h + 270) % 360}, ${s}%, ${l}%)`
+            ];
+            harmonies['square'] = [
+                `hsl(${h}, ${s}%, ${l}%)`,
+                `hsl(${(h + 90) % 360}, ${s}%, ${l}%)`,
+                `hsl(${(h + 180) % 360}, ${s}%, ${l}%)`,
+                `hsl(${(h + 270) % 360}, ${s}%, ${l}%)`
+            ];
+            harmonies['hexadic'] = [
+                `hsl(${h}, ${s}%, ${l}%)`,
+                `hsl(${(h + 60) % 360}, ${s}%, ${l}%)`,
+                `hsl(${(h + 120) % 360}, ${s}%, ${l}%)`,
+                `hsl(${(h + 180) % 360}, ${s}%, ${l}%)`,
+                `hsl(${(h + 240) % 360}, ${s}%, ${l}%)`,
+                `hsl(${(h + 300) % 360}, ${s}%, ${l}%)`
+            ];
+            harmonies['monochromatic'] = [
+                `hsl(${h}, ${s}%, 10%)`,
+                `hsl(${h}, ${s}%, 30%)`,
+                `hsl(${h}, ${s}%, 50%)`,
+                `hsl(${h}, ${s}%, 70%)`,
+                `hsl(${h}, ${s}%, 90%)`
+            ];
+            harmonies['warm'] = [
+                `hsl(${Math.random() * 60}, 100%, 50%)`,
+                `hsl(${Math.random() * 60 + 30}, 100%, 50%)`,
+                `hsl(${Math.random() * 60 + 15}, 100%, 50%)`,
+                `hsl(${h}, ${s}%, ${l}%)`
+            ];
+            harmonies['cool'] = [
+                `hsl(${Math.random() * 60 + 180}, 100%, 50%)`,
+                `hsl(${Math.random() * 60 + 210}, 100%, 50%)`,
+                `hsl(${Math.random() * 60 + 240}, 100%, 50%)`,
+                `hsl(${h}, ${s}%, ${l}%)`
+            ];
+            harmonies['achromatic'] = [
+                'rgb(0,0,0)',
+                'rgb(50,50,50)',
+                'rgb(128,128,128)',
+                'rgb(200,200,200)',
+                'rgb(255,255,255)'
+            ];
+            harmonies['achromatic_plus_complementary'] = [
+                'rgb(128,128,128)',
+                `hsl(${h}, ${s}%, ${l}%)`,
+                `hsl(${(h + 180) % 360}, ${s}%, ${l}%)`
+            ];
+
+            return harmonies;
+        }
+
+        function updateResults(h, s, l) {
+            const harmonies = generateHarmonies(h, s, l);
+            harmonyGrid.innerHTML = '';
+            for (const key in harmonies) {
+                const palette = harmonies[key];
+                const harmonySet = document.createElement('div');
+                harmonySet.className = 'harmony-set';
+                const title = document.createElement('div');
+                title.className = 'harmony-title';
+                title.textContent = harmonyNames[key] || key;
+                const paletteContainer = document.createElement('div');
+                paletteContainer.className = 'color-palette';
+                palette.forEach(color => {
+                    const swatch = document.createElement('div');
+                    swatch.className = 'color-swatch';
+                    swatch.style.backgroundColor = color;
+                    
+                    let hex;
+                    if (color.startsWith('hsl')) {
+                        const parts = color.match(/hsl\((\d+\.?\d*), (\d+\.?\d*)%, (\d+\.?\d*)%\)/);
+                        if (parts) {
+                            const h_val = parseFloat(parts[1]);
+                            const s_val = parseFloat(parts[2]);
+                            const l_val = parseFloat(parts[3]);
+                            const [r, g, b] = hslToRgb(h_val, s_val, l_val);
+                            hex = `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase()}`;
+                        }
+                    } else if (color.startsWith('rgb')) {
+                        const parts = color.match(/rgb\((\d+), (\d+), (\d+)\)/);
+                        if (parts) {
+                            const r = parseInt(parts[1], 10);
+                            const g = parseInt(parts[2], 10);
+                            const b = parseInt(parts[3], 10);
+                            hex = `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase()}`;
+                        }
+                    }
+                    if (hex) {
+                        swatch.setAttribute('data-hex', hex);
+                    }
+                    paletteContainer.appendChild(swatch);
+                });
+                harmonySet.appendChild(title);
+                harmonySet.appendChild(paletteContainer);
+                harmonyGrid.appendChild(harmonySet);
+            }
+        }
+
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const imageData = ctx.getImageData(x, y, 1, 1).data;
+            const [r, g, b] = imageData;
+            
+            if (imageData[3] === 0) {
+                return;
+            }
+
+            const [h, s, l] = rgbToHsl(r, g, b);
+            const hex = `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase()}`;
+            
+            selectedColorBox.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+            selectedNameSpan.textContent = `Название: ${getColorName(h, s, l)}`;
+            selectedHexSpan.textContent = `HEX: ${hex}`;
+            selectedRgbSpan.textContent = `RGB: ${r}, ${g}, ${b}`;
+            selectedHslSpan.textContent = `HSL: ${Math.round(h)}, ${Math.round(s)}%, ${Math.round(l)}%`;
+            
+            updateResults(h, s, l);
+        });
+
+        window.onload = function() {
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            const initialH = 210;
+            const initialS = 100;
+            const initialL = 50;
+            const [r, g, b] = hslToRgb(initialH, initialS, initialL);
+            const hex = `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase()}`;
+
+            selectedColorBox.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+            selectedNameSpan.textContent = `Название: ${getColorName(initialH, initialS, initialL)}`;
+            selectedHexSpan.textContent = `HEX: ${hex}`;
+            selectedRgbSpan.textContent = `RGB: ${r}, ${g}, ${b}`;
+            selectedHslSpan.textContent = `HSL: ${Math.round(initialH)}, ${Math.round(initialS)}%, ${Math.round(initialL)}%`;
+            updateResults(initialH, initialS, initialL);
+        };
+    </script>
+</body>
+</html>
+
+

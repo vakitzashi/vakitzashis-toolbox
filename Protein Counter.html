@@ -1,0 +1,587 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protein Quality Tracker</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --accent: #38bdf8;
+            --success: #4ade80;
+            --danger: #f87171;
+            --border: #334155;
+            --font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-family);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        h1, h2, h3 {
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            color: var(--accent);
+            text-align: center;
+            margin-bottom: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+.card {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+        }
+.form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 12px;
+            background-color: #0f172a;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        select:focus, input:focus {
+            border-color: var(--accent);
+        }
+
+        button.btn-add {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, var(--accent), #2563eb);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        button.btn-add:hover {
+            opacity: 0.9;
+        }
+
+        button.btn-delete {
+            background: none;
+            border: none;
+            color: var(--danger);
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+.meal-section {
+            margin-bottom: 20px;
+        }
+
+        .meal-title {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 4px;
+            margin-bottom: 10px;
+        }
+
+        .food-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .food-info span {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+.canvas-wrapper {
+            width: 100%;
+            height: 400px;
+            position: relative;
+            background: #162032;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-box {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .recommendations {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(74, 222, 128, 0.1);
+            border-left: 4px solid var(--success);
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        .recommendations.warning {
+            background: rgba(248, 113, 113, 0.1);
+            border-left: 4px solid var(--danger);
+        }
+::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-color);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>АНАЛИЗАТОР КАЧЕСТВА <span style="color:white">ПРОТЕИНА</span></h1>
+
+    <div class="container">
+<div class="input-column">
+            <div class="card">
+                <h3>Добавить продукт</h3>
+                
+                <div class="form-group">
+                    <label>Прием пищи</label>
+                    <select id="mealSelect">
+                        <option value="Завтрак">Завтрак</option>
+                        <option value="Обед">Обед</option>
+                        <option value="Ужин">Ужин</option>
+                        <option value="Перекус">Перекус</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Продукт (источник белка)</label>
+                    <select id="productSelect">
+</select>
+                </div>
+
+                <div class="form-group">
+                    <label>Количество чистого белка (г)</label>
+                    <input type="number" id="proteinAmount" placeholder="Например: 25" min="1">
+                </div>
+
+                <button class="btn-add" onclick="addEntry()">Добавить в рацион</button>
+            </div>
+
+            <div class="card" style="margin-top: 20px;">
+                <h3>Ваш рацион</h3>
+                <div id="foodList">
+<div style="text-align: center; color: var(--text-muted); padding: 20px;">
+                        Список пуст
+                    </div>
+                </div>
+            </div>
+        </div>
+<div class="output-column">
+            <div class="card">
+                <h3>Анализ эффективности</h3>
+                
+                <div class="canvas-wrapper">
+                    <canvas id="statsCanvas"></canvas>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-value" id="totalRawProtein">0 г</div>
+                        <div class="stat-label">Сырой белок</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="totalEffProtein">0 г</div>
+                        <div class="stat-label">Эффективный белок (DIAAS)</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="totalLeucine">0 г</div>
+                        <div class="stat-label">Общий лейцин</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="avgQuality">0.00</div>
+                        <div class="stat-label">Средний коэффициент качества</div>
+                    </div>
+                </div>
+
+                <div id="recommendationBox" class="recommendations" style="display:none;">
+</div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    const productsDB = [
+        { id: 'whey', name: 'Сывороточный протеин', type: 'animal', diaas: 1.09, k_leucine: 1.0, leucine_per_100: 11.0 },
+        { id: 'egg', name: 'Яйцо (цельное)', type: 'animal', diaas: 1.13, k_leucine: 1.0, leucine_per_100: 8.6 },
+        { id: 'beef', name: 'Говядина', type: 'animal', diaas: 1.10, k_leucine: 1.0, leucine_per_100: 8.0 },
+        { id: 'chicken', name: 'Куриная грудка', type: 'animal', diaas: 1.08, k_leucine: 1.0, leucine_per_100: 7.5 },
+        { id: 'casein', name: 'Казеин / Творог', type: 'animal', diaas: 1.10, k_leucine: 1.0, leucine_per_100: 9.2 },
+        { id: 'fish', name: 'Рыба (белая)', type: 'animal', diaas: 1.00, k_leucine: 1.0, leucine_per_100: 7.8 },
+        
+        { id: 'soy', name: 'Соевый изолят', type: 'plant', diaas: 0.90, k_leucine: 0.95, leucine_per_100: 8.0 },
+        { id: 'pea', name: 'Гороховый протеин', type: 'plant', diaas: 0.82, k_leucine: 0.9, leucine_per_100: 7.0 },
+        { id: 'rice', name: 'Рис (обычный)', type: 'plant', diaas: 0.47, k_leucine: 0.6, leucine_per_100: 6.5 },
+        { id: 'oats', name: 'Овсянка', type: 'plant', diaas: 0.57, k_leucine: 0.7, leucine_per_100: 6.8 },
+        { id: 'wheat', name: 'Пшеница (Глютен)', type: 'plant', diaas: 0.40, k_leucine: 0.5, leucine_per_100: 6.2 },
+        { id: 'beans', name: 'Фасоль / Чечевица', type: 'plant', diaas: 0.60, k_leucine: 0.8, leucine_per_100: 7.2 }
+    ];
+    let consumedLog = [];
+    const LEUCINE_THRESHOLD = 2.5;
+
+    window.onload = function() {
+        populateSelect();
+        updateUI();
+    };
+
+    function populateSelect() {
+        const select = document.getElementById('productSelect');
+        const animalGroup = document.createElement('optgroup');
+        animalGroup.label = "Животные источники";
+        const plantGroup = document.createElement('optgroup');
+        plantGroup.label = "Растительные источники";
+
+        productsDB.forEach(prod => {
+            const option = document.createElement('option');
+            option.value = prod.id;
+            option.text = `${prod.name} (DIAAS: ${prod.diaas})`;
+            
+            if(prod.type === 'animal') animalGroup.appendChild(option);
+            else plantGroup.appendChild(option);
+        });
+
+        select.appendChild(animalGroup);
+        select.appendChild(plantGroup);
+    }
+
+    function addEntry() {
+        const meal = document.getElementById('mealSelect').value;
+        const prodId = document.getElementById('productSelect').value;
+        const amount = parseFloat(document.getElementById('proteinAmount').value);
+
+        if (!amount || amount <= 0) {
+            alert("Введите корректное количество белка");
+            return;
+        }
+
+        const productData = productsDB.find(p => p.id === prodId);
+        const effectiveProtein = amount * productData.diaas * productData.k_leucine;
+        const leucineContent = amount * (productData.leucine_per_100 / 100);
+
+        const entry = {
+            id: Date.now(),
+            meal: meal,
+            productName: productData.name,
+            type: productData.type,
+            rawProtein: amount,
+            diaas: productData.diaas,
+            effectiveProtein: effectiveProtein,
+            leucine: leucineContent
+        };
+
+        consumedLog.push(entry);
+        document.getElementById('proteinAmount').value = '';
+        updateUI();
+    }
+
+    function removeEntry(id) {
+        consumedLog = consumedLog.filter(e => e.id !== id);
+        updateUI();
+    }
+
+    function calculateStats() {
+        let totalRaw = 0;
+        let totalEff = 0;
+        let totalLeucine = 0;
+        const mealAnalysis = {};
+
+        consumedLog.forEach(item => {
+            totalRaw += item.rawProtein;
+            totalEff += item.effectiveProtein;
+            totalLeucine += item.leucine;
+
+            if(!mealAnalysis[item.meal]) mealAnalysis[item.meal] = 0;
+            mealAnalysis[item.meal] += item.leucine;
+        });
+
+        const avgQuality = totalRaw > 0 ? (totalEff / totalRaw) : 0;
+        let optimalMeals = 0;
+        for (const [meal, leu] of Object.entries(mealAnalysis)) {
+            if(leu >= LEUCINE_THRESHOLD) optimalMeals++;
+        }
+
+        return {
+            totalRaw,
+            totalEff,
+            totalLeucine,
+            avgQuality,
+            mealAnalysis,
+            optimalMeals
+        };
+    }
+
+    function updateUI() {
+        const stats = calculateStats();
+        document.getElementById('totalRawProtein').innerText = stats.totalRaw.toFixed(1) + ' г';
+        document.getElementById('totalEffProtein').innerText = stats.totalEff.toFixed(1) + ' г';
+        document.getElementById('totalLeucine').innerText = stats.totalLeucine.toFixed(1) + ' г';
+        document.getElementById('avgQuality').innerText = stats.avgQuality.toFixed(2);
+        const listDiv = document.getElementById('foodList');
+        listDiv.innerHTML = '';
+        const groupedLog = {};
+        consumedLog.forEach(item => {
+            if(!groupedLog[item.meal]) groupedLog[item.meal] = [];
+            groupedLog[item.meal].push(item);
+        });
+
+        if (consumedLog.length === 0) {
+            listDiv.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">Список пуст</div>';
+        } else {
+            for (const [meal, items] of Object.entries(groupedLog)) {
+                const section = document.createElement('div');
+                section.className = 'meal-section';
+                const mealLeucine = stats.mealAnalysis[meal] || 0;
+                const isOptimal = mealLeucine >= LEUCINE_THRESHOLD;
+                const statusIcon = isOptimal ? '✓' : '✗';
+                const statusColor = isOptimal ? 'var(--success)' : 'var(--danger)';
+                
+                section.innerHTML = `<div class="meal-title" style="display:flex; justify-content:space-between">
+                    <span>${meal}</span>
+                    <span style="color:${statusColor}">Лейцин: ${mealLeucine.toFixed(1)}г (${statusIcon})</span>
+                </div>`;
+
+                items.forEach(item => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'food-item';
+                    itemDiv.innerHTML = `
+                        <div>
+                            <strong>${item.productName}</strong>
+                            <div class="food-info">
+                                <span>${item.rawProtein}г белка • Эфф: ${item.effectiveProtein.toFixed(1)}г</span>
+                            </div>
+                        </div>
+                        <button class="btn-delete" onclick="removeEntry(${item.id})">&times;</button>
+                    `;
+                    section.appendChild(itemDiv);
+                });
+                listDiv.appendChild(section);
+            }
+        }
+        updateRecommendations(stats);
+        drawDashboard(stats);
+    }
+
+    function updateRecommendations(stats) {
+        const box = document.getElementById('recommendationBox');
+        if (stats.totalRaw === 0) {
+            box.style.display = 'none';
+            return;
+        }
+        
+        box.style.display = 'block';
+        box.className = 'recommendations';
+        let msgs = [];
+
+        if (stats.avgQuality < 0.8) {
+            msgs.push("• <strong>Низкое качество белка:</strong> В вашем рационе много растительных источников с низким DIAAS. Добавьте животный белок или комбинируйте источники (рис + горох).");
+            box.className += ' warning';
+        } else {
+            msgs.push("• <strong>Отличное качество:</strong> Ваш рацион имеет высокую биодоступность.");
+        }
+
+        if (stats.optimalMeals < Object.keys(stats.mealAnalysis).length) {
+            msgs.push(`• <strong>MPS стимуляция:</strong> Только ${stats.optimalMeals} приемов пищи достигли порога лейцина (2.5г). Попробуйте увеличить порции белка в слабых приемах.`);
+        } else {
+            msgs.push("• <strong>Максимальный анаболизм:</strong> Все приемы пищи эффективно стимулируют синтез мышц.");
+        }
+
+        box.innerHTML = msgs.join('<br>');
+    }
+
+    function drawDashboard(stats) {
+        const canvas = document.getElementById('statsCanvas');
+        const ctx = canvas.getContext('2d');
+        const dpr = window.devicePixelRatio || 1;
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        ctx.scale(dpr, dpr);
+        
+        const w = rect.width;
+        const h = rect.height;
+        ctx.clearRect(0, 0, w, h);
+
+        if (stats.totalRaw === 0) {
+            ctx.fillStyle = "#334155";
+            ctx.font = "14px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText("Добавьте продукты для визуализации", w/2, h/2);
+            return;
+        }
+        const meals = Object.keys(stats.mealAnalysis);
+        const padding = 40;
+        const chartH = (h / 2) - 40;
+        const chartY = 40;
+        
+        ctx.fillStyle = "#f1f5f9";
+        ctx.font = "bold 14px sans-serif";
+        ctx.textAlign = "left";
+        ctx.fillText("УРОВЕНЬ ЛЕЙЦИНА ПО ПРИЕМАМ ПИЩИ", padding, 20);
+
+        if (meals.length > 0) {
+            const barWidth = (w - (padding * 2)) / meals.length;
+            const maxLeu = Math.max(4, ...Object.values(stats.mealAnalysis));
+
+            meals.forEach((meal, i) => {
+                const leu = stats.mealAnalysis[meal];
+                const barH = (leu / maxLeu) * chartH;
+                const x = padding + (i * barWidth) + (barWidth * 0.1);
+                const bw = barWidth * 0.8;
+                const y = chartY + chartH - barH;
+                ctx.fillStyle = leu >= LEUCINE_THRESHOLD ? "#4ade80" : "#f87171";
+                ctx.fillRect(x, y, bw, barH);
+                ctx.fillStyle = "#94a3b8";
+                ctx.font = "12px sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText(meal, x + bw/2, chartY + chartH + 15);
+                ctx.fillStyle = "#fff";
+                ctx.fillText(leu.toFixed(1), x + bw/2, y - 5);
+            });
+            const threshY = chartY + chartH - ((LEUCINE_THRESHOLD / maxLeu) * chartH);
+            ctx.beginPath();
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+            ctx.setLineDash([5, 5]);
+            ctx.moveTo(padding, threshY);
+            ctx.lineTo(w - padding, threshY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+            ctx.textAlign = "right";
+            ctx.fillText("Цель 2.5г", w - padding, threshY - 5);
+        }
+        const bottomY = h / 2 + 40;
+        ctx.fillStyle = "#f1f5f9";
+        ctx.font = "bold 14px sans-serif";
+        ctx.textAlign = "left";
+        ctx.fillText("ЭФФЕКТИВНОСТЬ УСВОЕНИЯ", padding, bottomY);
+
+        const barTotalW = w - (padding * 2);
+        const barH = 40;
+        const barY = bottomY + 30;
+        ctx.fillStyle = "#334155";
+        ctx.fillRect(padding, barY, barTotalW, barH);
+        const effPct = stats.totalRaw > 0 ? (stats.totalEff / stats.totalRaw) : 0;
+        const effW = barTotalW * Math.min(effPct, 1);
+        const grad = ctx.createLinearGradient(padding, 0, padding + effW, 0);
+        grad.addColorStop(0, "#38bdf8");
+        grad.addColorStop(1, "#818cf8");
+        ctx.fillStyle = grad;
+        ctx.fillRect(padding, barY, effW, barH);
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 16px sans-serif";
+        ctx.textAlign = "left";
+        ctx.fillText(`${Math.round(effPct * 100)}% Усвоено`, padding + 10, barY + 26);
+        
+        ctx.textAlign = "right";
+        ctx.font = "12px sans-serif";
+        ctx.fillStyle = "#94a3b8";
+        ctx.fillText(`Потери: ${(stats.totalRaw - stats.totalEff).toFixed(1)} г`, w - padding, barY + barH + 20);
+        let animalRaw = 0;
+        consumedLog.forEach(i => { if(i.type === 'animal') animalRaw += i.rawProtein; });
+        const plantRaw = stats.totalRaw - animalRaw;
+        
+        const pieX = w - 80;
+        const pieY = h - 60;
+        const radius = 40;
+        
+        let startAngle = 0;
+        const animalSlice = (animalRaw / stats.totalRaw) * 2 * Math.PI;
+        ctx.beginPath();
+        ctx.moveTo(pieX, pieY);
+        ctx.arc(pieX, pieY, radius, startAngle, startAngle + animalSlice);
+        ctx.fillStyle = "#60a5fa";
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(pieX, pieY);
+        ctx.arc(pieX, pieY, radius, startAngle + animalSlice, startAngle + 2 * Math.PI);
+        ctx.fillStyle = "#4ade80";
+        ctx.fill();
+        ctx.fillStyle = "#94a3b8";
+        ctx.font = "10px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("Животн. / Растит.", pieX, pieY + radius + 15);
+    }
+</script>
+</body>
+</html>

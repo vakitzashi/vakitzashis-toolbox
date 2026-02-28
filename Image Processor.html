@@ -1,0 +1,420 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Processor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+        .card {
+            background-color: #1e1e1e;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            padding: 24px;
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3);
+        }
+        .input-group label {
+            font-size: 14px;
+            color: #b0b0b0;
+            margin-bottom: 8px;
+            display: block;
+        }
+        .input-group input[type="number"],
+        .input-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 8px;
+            background-color: #2c2c2c;
+            border: 1px solid #444;
+            color: #e0e0e0;
+            transition: border-color 0.3s ease;
+        }
+        .input-group input[type="number"]:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: #4a90e2;
+        }
+        .input-group input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            background: #2c2c2c;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .input-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #4a90e2;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s ease;
+        }
+        .input-group input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        .btn-primary {
+            background-color: #4a90e2;
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background-color: #357bd8;
+            transform: translateY(-2px);
+        }
+        .file-upload-box {
+            border: 2px dashed #444;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .file-upload-box:hover {
+            background-color: #1e1e1e;
+        }
+        .file-upload-box.active {
+            background-color: #2c2c2c;
+            border-color: #4a90e2;
+        }
+        .tooltip-container {
+            position: relative;
+            display: inline-block;
+        }
+        .tooltip {
+            visibility: hidden;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -60px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .tooltip-container:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="p-8">
+    <div class="flex justify-center items-start min-h-screen">
+        <div class="container mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="card p-6 flex flex-col items-center justify-center">
+                <h2 class="text-xl font-semibold mb-4 text-center">Загрузить изображение</h2>
+                <div id="file-upload-box" class="file-upload-box w-full mb-4">
+                    <p class="text-gray-400">Нажмите или перетащите файл сюда</p>
+                    <input type="file" id="image-upload" class="hidden" accept="image/*">
+                </div>
+
+                <div id="image-preview-container" class="w-full flex justify-center items-center h-96 bg-gray-900 rounded-lg overflow-hidden relative" style="display: none;">
+                    <img id="image-preview" src="" alt="Image Preview" class="max-w-full max-h-full object-contain fade-in">
+                    <div id="image-size" class="absolute top-2 right-2 text-xs bg-black bg-opacity-50 text-white px-2 py-1 rounded-md"></div>
+                </div>
+
+                <div id="file-info" class="mt-4 w-full text-sm">
+                    <p id="original-size">Размер: 0 Б</p>
+                    <p id="original-format">Исходный формат: </p>
+                    <p id="processed-size">Обработанный размер: 0 Б</p>
+                </div>
+            </div>
+
+            <div class="card p-6">
+                <h2 class="text-xl font-semibold mb-6 text-center">Настройки</h2>
+                <div id="controls-panel" style="display: none;">
+                    <div class="input-group mb-6">
+                        <label for="resolution-slider">Разрешение (%)</label>
+                        <div class="flex items-center space-x-4 mt-1">
+                            <input type="range" id="resolution-slider" min="10" max="100" value="100" step="1" class="flex-grow">
+                            <span id="resolution-value" class="w-12 text-center">100%</span>
+                        </div>
+                    </div>
+
+                    <div class="input-group mb-6">
+                        <label for="width-input">Ширина (px)</label>
+                        <input type="number" id="width-input" class="mt-1" placeholder="Ширина">
+                    </div>
+
+                    <div class="input-group mb-6">
+                        <label for="height-input">Высота (px)</label>
+                        <input type="number" id="height-input" class="mt-1" placeholder="Высота">
+                    </div>
+
+                    <div class="input-group mb-6">
+                        <label for="resize-type">Тип изменения размера</label>
+                        <select id="resize-type" class="mt-1">
+                            <option value="contain">Сохранить пропорции</option>
+                            <option value="cover">Обрезать</option>
+                            <option value="stretch">Растянуть</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group mb-6">
+                        <label for="quality-slider">Качество (сжатие)</label>
+                        <div class="flex items-center space-x-4 mt-1">
+                            <span class="text-xs text-gray-400">0% (большое сжатие)</span>
+                            <input type="range" id="quality-slider" min="0" max="10" value="10" step="1" class="flex-grow">
+                            <span class="text-xs text-gray-400">100% (исходное)</span>
+                        </div>
+                    </div>
+
+                    <div class="input-group mb-6">
+                        <label for="format-select">Формат сохранения</label>
+                        <select id="format-select" class="mt-1">
+                            <option value="jpeg">JPEG</option>
+                            <option value="png">PNG</option>
+                            <option value="webp">WebP</option>
+                        </select>
+                    </div>
+
+                    <div class="flex justify-center mt-8">
+                        <button id="download-btn" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L10 11.586l2.293-2.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                            Сохранить
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const fileUploadBox = document.getElementById('file-upload-box');
+            const imageUpload = document.getElementById('image-upload');
+            const imagePreviewContainer = document.getElementById('image-preview-container');
+            const imagePreview = document.getElementById('image-preview');
+            const imageSizeDisplay = document.getElementById('image-size');
+            const controlsPanel = document.getElementById('controls-panel');
+            const widthInput = document.getElementById('width-input');
+            const heightInput = document.getElementById('height-input');
+            const resizeTypeSelect = document.getElementById('resize-type');
+            const qualitySlider = document.getElementById('quality-slider');
+            const downloadBtn = document.getElementById('download-btn');
+            const originalSizeDisplay = document.getElementById('original-size');
+            const originalFormatDisplay = document.getElementById('original-format');
+            const processedSizeDisplay = document.getElementById('processed-size');
+            const resolutionSlider = document.getElementById('resolution-slider');
+            const resolutionValueDisplay = document.getElementById('resolution-value');
+            const formatSelect = document.getElementById('format-select');
+
+            let originalImageBlob = null;
+            let originalImage = null;
+            let currentBlob = null;
+            let originalFileName = "processed_image";
+
+            const formatBytes = (bytes, decimals = 2) => {
+                if (bytes === 0) return '0 Б';
+                const k = 1024;
+                const dm = decimals < 0 ? 0 : decimals;
+                const sizes = ['Б', 'КБ', 'МБ', 'ГБ', 'ТБ'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+            };
+
+            fileUploadBox.addEventListener('click', () => {
+                imageUpload.click();
+            });
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                fileUploadBox.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }, false);
+            });
+
+            fileUploadBox.addEventListener('dragenter', () => {
+                fileUploadBox.classList.add('active');
+            });
+            fileUploadBox.addEventListener('dragleave', () => {
+                fileUploadBox.classList.remove('active');
+            });
+
+            fileUploadBox.addEventListener('drop', (e) => {
+                fileUploadBox.classList.remove('active');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) handleImage(files[0]);
+            });
+
+            imageUpload.addEventListener('change', (e) => {
+                const files = e.target.files;
+                if (files.length > 0) handleImage(files[0]);
+            });
+
+            const handleImage = (file) => {
+                if (!file.type.startsWith('image/')) {
+                    alert('Пожалуйста, загрузите файл изображения.');
+                    return;
+                }
+
+                originalImageBlob = file;
+                originalFileName = file.name.split('.')[0];
+                const fileExtension = file.name.split('.').pop().toLowerCase();
+
+                originalSizeDisplay.textContent = `Исходный размер: ${formatBytes(file.size)}`;
+                originalFormatDisplay.textContent = `Исходный формат: ${fileExtension}`;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imagePreview.src = e.target.result;
+                    imagePreviewContainer.style.display = 'flex';
+                    controlsPanel.style.display = 'block';
+
+                    originalImage = new Image();
+                    originalImage.onload = () => {
+                        widthInput.value = originalImage.width;
+                        heightInput.value = originalImage.height;
+                        imageSizeDisplay.textContent = `${originalImage.width}x${originalImage.height}`;
+                        resolutionSlider.value = 100;
+                        resolutionValueDisplay.textContent = '100%';
+                        resizeTypeSelect.value = 'contain';
+                        qualitySlider.value = 10;
+                        processImage();
+                    };
+                    originalImage.onerror = () => {
+                        alert('Ошибка загрузки изображения. Возможно, файл поврежден.');
+                        imagePreviewContainer.style.display = 'none';
+                        controlsPanel.style.display = 'none';
+                    };
+                    originalImage.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            };
+
+            const processImage = () => {
+                if (!originalImage) return;
+
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+
+                let newWidth, newHeight;
+                const resizeType = resizeTypeSelect.value;
+                const quality = parseFloat(qualitySlider.value / 10);
+                const outputFormat = formatSelect.value;
+                let mimeType = `image/${outputFormat}`;
+
+                if (resolutionSlider.value !== '100' && resizeType === 'contain') {
+                    const percentage = parseFloat(resolutionSlider.value) / 100;
+                    newWidth = Math.round(originalImage.width * percentage);
+                    newHeight = Math.round(originalImage.height * percentage);
+                    widthInput.value = newWidth;
+                    heightInput.value = newHeight;
+                } else {
+                    newWidth = parseInt(widthInput.value);
+                    newHeight = parseInt(heightInput.value);
+                }
+
+                let sx = 0, sy = 0, sWidth = originalImage.width, sHeight = originalImage.height;
+
+                try {
+                    if (resizeType === 'contain') {
+                        const ratio = Math.min(newWidth / originalImage.width, newHeight / originalImage.height);
+                        const dWidth = originalImage.width * ratio;
+                        const dHeight = originalImage.height * ratio;
+                        canvas.width = newWidth;
+                        canvas.height = newHeight;
+                        const dx = (newWidth - dWidth) / 2;
+                        const dy = (newHeight - dHeight) / 2;
+                        ctx.drawImage(originalImage, dx, dy, dWidth, dHeight);
+                    } else if (resizeType === 'cover') {
+                        const ratio = Math.max(newWidth / originalImage.width, newHeight / originalImage.height);
+                        sWidth = newWidth / ratio;
+                        sHeight = newHeight / ratio;
+                        sx = (originalImage.width - sWidth) / 2;
+                        sy = (originalImage.height - sHeight) / 2;
+                        canvas.width = newWidth;
+                        canvas.height = newHeight;
+                        ctx.drawImage(originalImage, sx, sy, sWidth, sHeight, 0, 0, newWidth, newHeight);
+                    } else if (resizeType === 'stretch') {
+                        canvas.width = newWidth;
+                        canvas.height = newHeight;
+                        ctx.drawImage(originalImage, 0, 0, newWidth, newHeight);
+                    }
+                } catch (e) {
+                    alert('Ошибка при обработке изображения. Убедитесь, что размеры корректны.');
+                    console.error('Canvas drawImage error:', e);
+                    return;
+                }
+
+                canvas.toBlob((blob) => {
+                    if (blob) {
+                        currentBlob = blob;
+                        processedSizeDisplay.textContent = `Обработанный размер: ${formatBytes(blob.size)}`;
+                        const processedImageUrl = URL.createObjectURL(blob);
+                        imagePreview.src = processedImageUrl;
+                    } else {
+                        alert('Не удалось создать файл изображения. Попробуйте другой формат или качество.');
+                    }
+                }, mimeType, quality);
+
+                imageSizeDisplay.textContent = `${newWidth}x${newHeight}`;
+            };
+
+            [widthInput, heightInput, resizeTypeSelect, qualitySlider, formatSelect].forEach(input => {
+                input.addEventListener('input', () => {
+                    if (input.id === 'width-input' || input.id === 'height-input') {
+                        resolutionSlider.value = 100;
+                        resolutionValueDisplay.textContent = '100%';
+                    }
+                    processImage();
+                });
+            });
+
+            resolutionSlider.addEventListener('input', () => {
+                resolutionValueDisplay.textContent = `${resolutionSlider.value}%`;
+                resizeTypeSelect.value = 'contain';
+                processImage();
+            });
+
+            downloadBtn.addEventListener('click', () => {
+                if (currentBlob) {
+                    const url = URL.createObjectURL(currentBlob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    const format = formatSelect.value;
+                    a.download = `${originalFileName}_processed.${format}`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+

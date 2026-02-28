@@ -1,0 +1,302 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTM-генератор</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+        }
+        input[type="text"], select {
+            background-color: #2a2a2a;
+            color: #e0e0e0;
+            border: 1px solid #444;
+            transition: all 0.2s;
+        }
+        input[type="text"]:focus, select:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.5);
+            outline: none;
+        }
+        .tooltip {
+            position: relative;
+            cursor: help;
+        }
+        .tooltip-text {
+            visibility: hidden;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            white-space: nowrap;
+        }
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+        .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #333 transparent transparent transparent;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8 flex items-center justify-center min-h-screen">
+    <div class="bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg w-full max-w-2xl">
+        <h1 class="text-2xl sm:text-3xl font-bold mb-6 text-center text-indigo-400">UTM-генератор</h1>
+<div class="mb-6">
+            <label for="url" class="block text-sm sm:text-base font-medium mb-2">Адрес вашей страницы</label>
+            <div class="flex rounded-lg shadow-sm">
+                <select id="protocol" class="rounded-l-lg border border-r-0 border-gray-600 bg-gray-700 py-2 px-3 text-sm sm:text-base">
+                    <option>https://</option>
+                    <option>http://</option>
+                </select>
+                <input type="text" id="urlInput" placeholder="example.com" class="flex-1 block w-full rounded-r-lg border border-gray-600 bg-gray-700 py-2 px-3 focus:ring-indigo-500 focus:border-indigo-500 text-sm sm:text-base">
+            </div>
+        </div>
+<div class="mb-6">
+            <h2 class="text-lg sm:text-xl font-semibold mb-3">Источник трафика</h2>
+            <div id="source-options" class="grid gap-2 grid-cols-2 sm:grid-cols-3">
+                <label class="flex items-center space-x-2 cursor-pointer">
+                    <input type="radio" name="source" value="custom" checked class="form-radio text-indigo-500 bg-gray-700 border-gray-600 focus:ring-indigo-500">
+                    <span class="text-sm sm:text-base">Свои значения</span>
+                </label>
+                <label class="flex items-center space-x-2 cursor-pointer">
+                    <input type="radio" name="source" value="google" class="form-radio text-indigo-500 bg-gray-700 border-gray-600 focus:ring-indigo-500">
+                    <span class="text-sm sm:text-base">Google Ads</span>
+                </label>
+                <label class="flex items-center space-x-2 cursor-pointer">
+                    <input type="radio" name="source" value="yandex" class="form-radio text-indigo-500 bg-gray-700 border-gray-600 focus:ring-indigo-500">
+                    <span class="text-sm sm:text-base">Яндекс.Директ</span>
+                </label>
+                <label class="flex items-center space-x-2 cursor-pointer">
+                    <input type="radio" name="source" value="vk" class="form-radio text-indigo-500 bg-gray-700 border-gray-600 focus:ring-indigo-500">
+                    <span class="text-sm sm:text-base">Вконтакте</span>
+                </label>
+                <label class="flex items-center space-x-2 cursor-pointer">
+                    <input type="radio" name="source" value="target" class="form-radio text-indigo-500 bg-gray-700 border-gray-600 focus:ring-indigo-500">
+                    <span class="text-sm sm:text-base">Target My.com</span>
+                </label>
+            </div>
+        </div>
+<div class="mb-6">
+            <h2 class="text-lg sm:text-xl font-semibold mb-3">Обязательные параметры</h2>
+            <div class="space-y-4">
+                <div class="relative">
+                    <label for="sourceInput" class="block text-sm sm:text-base font-medium mb-2">
+                        <span>Источник кампании</span>
+                        <span class="ml-2 inline-block tooltip">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.79 4 4s-1.79 4-4 4c-.722 0-1.393-.2-2-.533M12 16h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="tooltip-text">utm_source: источник перехода (google, yandex)</span>
+                        </span>
+                    </label>
+                    <input type="text" id="sourceInput" placeholder="google, yandex, vk" class="w-full rounded-lg py-2 px-3 text-sm sm:text-base">
+                </div>
+                <div>
+                    <label for="mediumInput" class="block text-sm sm:text-base font-medium mb-2">
+                        <span>Тип трафика</span>
+                        <span class="ml-2 inline-block tooltip">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.79 4 4s-1.79 4-4 4c-.722 0-1.393-.2-2-.533M12 16h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="tooltip-text">utm_medium: тип трафика (cpc, email, banner)</span>
+                        </span>
+                    </label>
+                    <input type="text" id="mediumInput" placeholder="cpc, email, banner" class="w-full rounded-lg py-2 px-3 text-sm sm:text-base">
+                </div>
+                <div>
+                    <label for="campaignInput" class="block text-sm sm:text-base font-medium mb-2">
+                        <span>Название кампании</span>
+                        <span class="ml-2 inline-block tooltip">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.79 4 4s-1.79 4-4 4c-.722 0-1.393-.2-2-.533M12 16h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="tooltip-text">utm_campaign: название рекламной кампании (promo, discount, sa)</span>
+                        </span>
+                    </label>
+                    <input type="text" id="campaignInput" placeholder="promo, discount, sa" class="w-full rounded-lg py-2 px-3 text-sm sm:text-base">
+                </div>
+            </div>
+        </div>
+<div class="mb-6">
+            <h2 class="text-lg sm:text-xl font-semibold mb-3">Необязательные параметры</h2>
+            <div class="space-y-4">
+                <div>
+                    <label for="contentInput" class="block text-sm sm:text-base font-medium mb-2">
+                        <span>Идентификатор объявления</span>
+                        <span class="ml-2 inline-block tooltip">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.79 4 4s-1.79 4-4 4c-.722 0-1.393-.2-2-.533M12 16h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="tooltip-text">utm_content: идентификатор объявления (link, landing page)</span>
+                        </span>
+                    </label>
+                    <input type="text" id="contentInput" placeholder="link, landing page" class="w-full rounded-lg py-2 px-3 text-sm sm:text-base">
+                </div>
+                <div>
+                    <label for="termInput" class="block text-sm sm:text-base font-medium mb-2">
+                        <span>Ключевое слово</span>
+                        <span class="ml-2 inline-block tooltip">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.79 4 4s-1.79 4-4 4c-.722 0-1.393-.2-2-.533M12 16h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="tooltip-text">utm_term: ключевое слово для поиска (free, -30%, registra)</span>
+                        </span>
+                    </label>
+                    <input type="text" id="termInput" placeholder="free, -30%, registra" class="w-full rounded-lg py-2 px-3 text-sm sm:text-base">
+                </div>
+            </div>
+        </div>
+<div class="mb-6">
+            <h2 class="text-lg sm:text-xl font-semibold mb-3">Дополнительные настройки</h2>
+            <div class="flex items-center">
+                <input type="checkbox" id="transliteration" class="form-checkbox h-4 w-4 text-indigo-600 bg-gray-700 border-gray-600 rounded focus:ring-indigo-500">
+                <label for="transliteration" class="ml-2 text-sm sm:text-base">Транслитерация параметров</label>
+            </div>
+        </div>
+<div class="mb-6">
+            <h2 class="text-lg sm:text-xl font-semibold mb-3">Результат</h2>
+            <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
+                <button id="copyButton" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg shadow-md hover:bg-indigo-700 transition duration-300 w-full sm:w-auto">Копировать</button>
+                <div id="resultOutput" class="bg-gray-700 text-gray-300 p-3 rounded-lg flex-1 break-all text-xs sm:text-sm">
+                    Здесь появится результат
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlInput = document.getElementById('urlInput');
+            const protocolSelect = document.getElementById('protocol');
+            const sourceRadios = document.querySelectorAll('input[name="source"]');
+            const sourceInput = document.getElementById('sourceInput');
+            const mediumInput = document.getElementById('mediumInput');
+            const campaignInput = document.getElementById('campaignInput');
+            const contentInput = document.getElementById('contentInput');
+            const termInput = document.getElementById('termInput');
+            const transliterationCheckbox = document.getElementById('transliteration');
+            const resultOutput = document.getElementById('resultOutput');
+            const copyButton = document.getElementById('copyButton');
+
+            const sourcesMap = {
+                'google': { source: 'google', medium: 'cpc' },
+                'yandex': { source: 'yandex', medium: 'cpc' },
+                'vk': { source: 'vk', medium: 'social' },
+                'target': { source: 'target', medium: 'cpc' }
+            };
+
+            const transliterate = (text) => {
+                if (!text) return '';
+                const map = {
+                    'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'yo', 'ж': 'zh', 'з': 'z', 'и': 'i', 'й': 'j', 'к': 'k', 'л': 'l', 'м': 'm', 'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u', 'ф': 'f', 'х': 'kh', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'shch', 'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya',
+                    'А': 'A', 'Б': 'B', 'В': 'V', 'Г': 'G', 'Д': 'D', 'Е': 'E', 'Ё': 'Yo', 'Ж': 'Zh', 'З': 'Z', 'И': 'I', 'Й': 'J', 'К': 'K', 'Л': 'L', 'М': 'M', 'Н': 'N', 'О': 'O', 'П': 'P', 'Р': 'R', 'С': 'S', 'Т': 'T', 'У': 'U', 'Ф': 'F', 'Х': 'Kh', 'Ц': 'Ts', 'Ч': 'Ch', 'Ш': 'Sh', 'Щ': 'Shch', 'Ъ': '', 'Ы': 'Y', 'Ь': '', 'Э': 'E', 'Ю': 'Yu', 'Я': 'Ya'
+                };
+                return text.split('').map(char => map[char] || char).join('');
+            };
+
+            const updateUtmLink = () => {
+                const protocol = protocolSelect.value;
+                let url = urlInput.value.trim();
+                if (!url) {
+                    resultOutput.textContent = 'Введите адрес страницы';
+                    return;
+                }
+                if (!url.startsWith('http')) {
+                    url = protocol + url;
+                }
+
+                const params = {};
+                let sourceValue = sourceInput.value.trim();
+                let mediumValue = mediumInput.value.trim();
+                let campaignValue = campaignInput.value.trim();
+                let contentValue = contentInput.value.trim();
+                let termValue = termInput.value.trim();
+
+                const translit = transliterationCheckbox.checked;
+
+                if (translit) {
+                    sourceValue = transliterate(sourceValue);
+                    mediumValue = transliterate(mediumValue);
+                    campaignValue = transliterate(campaignValue);
+                    contentValue = transliterate(contentValue);
+                    termValue = transliterate(termValue);
+                }
+                
+                if (sourceValue) params.utm_source = sourceValue;
+                if (mediumValue) params.utm_medium = mediumValue;
+                if (campaignValue) params.utm_campaign = campaignValue;
+                if (contentValue) params.utm_content = contentValue;
+                if (termValue) params.utm_term = termValue;
+
+                const queryParams = new URLSearchParams(params).toString();
+                const separator = url.includes('?') ? '&' : '?';
+                const utmLink = queryParams ? `${url}${separator}${queryParams}` : url;
+
+                resultOutput.textContent = utmLink;
+            };
+
+            const handleSourceChange = (event) => {
+                const selectedSource = event.target.value;
+                if (selectedSource === 'custom') {
+                    sourceInput.value = '';
+                    mediumInput.value = '';
+                    sourceInput.disabled = false;
+                    mediumInput.disabled = false;
+                } else {
+                    const values = sourcesMap[selectedSource];
+                    sourceInput.value = values.source;
+                    mediumInput.value = values.medium;
+                    sourceInput.disabled = true;
+                    mediumInput.disabled = true;
+                }
+                updateUtmLink();
+            };
+
+            sourceRadios.forEach(radio => radio.addEventListener('change', handleSourceChange));
+            [urlInput, sourceInput, mediumInput, campaignInput, contentInput, termInput, transliterationCheckbox].forEach(element => {
+                element.addEventListener('input', updateUtmLink);
+            });
+            protocolSelect.addEventListener('change', updateUtmLink);
+
+            copyButton.addEventListener('click', () => {
+                const textToCopy = resultOutput.textContent;
+                if (textToCopy && textToCopy !== 'Здесь появится результат') {
+                    navigator.clipboard.writeText(textToCopy).then(() => {
+                        const originalText = copyButton.textContent;
+                        copyButton.textContent = 'Скопировано!';
+                        setTimeout(() => {
+                            copyButton.textContent = originalText;
+                        }, 2000);
+                    }).catch(err => {
+                        console.error('Не удалось скопировать текст: ', err);
+                    });
+                }
+            });
+            updateUtmLink();
+        });
+    </script>
+</body>
+</html>
+
+

@@ -1,0 +1,322 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coin Convert</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a1a2e;
+        }
+        .custom-select {
+            position: relative;
+        }
+        .select-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            padding: 0.75rem;
+            background-color: #374151;
+            border: 1px solid #4b5563;
+            border-radius: 0.5rem;
+        }
+        .dropdown-options {
+            position: absolute;
+            z-index: 10;
+            width: 100%;
+            max-height: 250px;
+            overflow-y: auto;
+            background-color: #1f2937;
+            border: 1px solid #4b5563;
+            border-radius: 0.5rem;
+            margin-top: 0.25rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            scrollbar-width: thin;
+            scrollbar-color: #4b5563 #1f2937;
+        }
+        .dropdown-options::-webkit-scrollbar {
+            width: 8px;
+        }
+        .dropdown-options::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+        .dropdown-options::-webkit-scrollbar-thumb {
+            background-color: #4b5563;
+            border-radius: 20px;
+            border: 2px solid #1f2937;
+        }
+        .option-item {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            cursor: pointer;
+        }
+        .option-item:hover {
+            background-color: #2d3a4b;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4 text-white">
+    <div class="w-full max-w-2xl bg-[#1f2937] rounded-3xl p-8 shadow-xl">
+        <h1 class="text-3xl font-bold text-center mb-6">Coin Convert</h1>
+
+        <div class="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0 md:space-x-4 mb-6">
+            <input type="number" id="amount" placeholder="Введите сумму" value="100" class="w-full bg-[#374151] text-white p-3 rounded-lg border border-[#4b5563] focus:outline-none focus:ring-2 focus:ring-[#6b7280]">
+
+            <div id="fromCurrencySelect" class="w-full custom-select">
+                <div class="select-toggle" data-dropdown="from">
+                    <span id="fromCurrencyDisplay"></span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="dropdown-options hidden" data-dropdown-content="from">
+                    <input type="text" placeholder="Поиск..." class="search-input w-full p-2 bg-[#374151] border-b border-[#4b5563] focus:outline-none" data-search="from">
+                    <div id="fromCurrencyList"></div>
+                </div>
+            </div>
+            
+            <button id="swapButton" class="p-3 bg-[#4b5563] rounded-full hover:bg-[#6b7280] transition-colors duration-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                </svg>
+            </button>
+            
+            <div id="toCurrencySelect" class="w-full custom-select">
+                <div class="select-toggle" data-dropdown="to">
+                    <span id="toCurrencyDisplay"></span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="dropdown-options hidden" data-dropdown-content="to">
+                    <input type="text" placeholder="Поиск..." class="search-input w-full p-2 bg-[#374151] border-b border-[#4b5563] focus:outline-none" data-search="to">
+                    <div id="toCurrencyList"></div>
+                </div>
+            </div>
+        </div>
+
+        <button id="convertButton" class="w-full bg-[#5252ff] hover:bg-[#6366f1] text-white font-bold py-3 rounded-lg shadow-md transition-colors duration-200">
+            Конвертировать
+        </button>
+
+        <div id="result" class="mt-8 text-center bg-[#2d3a4b] rounded-xl p-6 transition-all duration-300">
+            <p class="text-2xl font-semibold">Результат:</p>
+            <p class="text-4xl font-extrabold mt-2 text-indigo-400" id="resultText">0.00</p>
+        </div>
+    </div>
+
+    <div id="messageBox" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-gray-800 p-6 rounded-lg shadow-lg text-center max-w-xs">
+            <p id="messageText" class="text-lg mb-4"></p>
+            <button id="closeMessageBox" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded">ОК</button>
+        </div>
+    </div>
+
+    <script>
+        window.onload = function() {
+
+            const amountInput = document.getElementById('amount');
+            const convertButton = document.getElementById('convertButton');
+            const swapButton = document.getElementById('swapButton');
+            const resultText = document.getElementById('resultText');
+            const messageBox = document.getElementById('messageBox');
+            const messageText = document.getElementById('messageText');
+            const closeMessageBoxButton = document.getElementById('closeMessageBox');
+
+            const fromCurrencyDisplay = document.getElementById('fromCurrencyDisplay');
+            const toCurrencyDisplay = document.getElementById('toCurrencyDisplay');
+            const fromCurrencyList = document.getElementById('fromCurrencyList');
+            const toCurrencyList = document.getElementById('toCurrencyList');
+            const fromSearchInput = document.querySelector('[data-search="from"]');
+            const toSearchInput = document.querySelector('[data-search="to"]');
+
+            const API_URL = 'https://api.exchangerate-api.com/v4/latest/USD';
+            let exchangeRates = {};
+
+            const currencyData = {
+                'USD': { symbol: '$', flag: '🇺🇸', name: 'Доллар США', country: 'Соединенные Штаты' },
+                'EUR': { symbol: '€', flag: '🇪🇺', name: 'Евро', country: 'Европейский Союз' },
+                'RUB': { symbol: '₽', flag: '🇷🇺', name: 'Российский рубль', country: 'Россия' },
+                'GBP': { symbol: '£', flag: '🇬🇧', name: 'Британский фунт', country: 'Великобритания' },
+                'JPY': { symbol: '¥', flag: '🇯🇵', name: 'Японская иена', country: 'Япония' },
+                'CNY': { symbol: '¥', flag: '🇨🇳', name: 'Китайский юань', country: 'Китай' },
+                'AUD': { symbol: '$', flag: '🇦🇺', name: 'Австралийский доллар', country: 'Австралия' },
+                'CAD': { symbol: '$', flag: '🇨🇦', name: 'Канадский доллар', country: 'Канада' },
+                'CHF': { symbol: 'Fr', flag: '🇨🇭', name: 'Швейцарский франк', country: 'Швейцария' },
+                'UAH': { symbol: '₴', flag: '🇺🇦', name: 'Украинская гривна', country: 'Украина' },
+                'KZT': { symbol: '₸', flag: '🇰🇿', name: 'Казахстанский тенге', country: 'Казахстан' },
+                'BYN': { symbol: 'Br', flag: '🇧🇾', name: 'Белорусский рубль', country: 'Беларусь' },
+                'BRL': { symbol: 'R$', flag: '🇧🇷', name: 'Бразильский реал', country: 'Бразилия' },
+                'MXN': { symbol: '$', flag: '🇲🇽', name: 'Мексиканский песо', country: 'Мексика' },
+                'PLN': { symbol: 'zł', flag: '🇵🇱', name: 'Польский злотый', country: 'Польша' },
+                'SEK': { symbol: 'kr', flag: '🇸🇪', name: 'Шведская крона', country: 'Швеция' },
+                'SGD': { symbol: 'S$', flag: '🇸🇬', name: 'Сингапурский доллар', country: 'Сингапур' },
+                'HKD': { symbol: '$', flag: '🇭🇰', name: 'Гонконгский доллар', country: 'Гонконг' },
+                'INR': { symbol: '₹', flag: '🇮🇳', name: 'Индийская рупия', country: 'Индия' },
+                'IDR': { symbol: 'Rp', flag: '🇮🇩', name: 'Индонезийская рупия', country: 'Индонезия' }
+            };
+
+            let fromCurrency = 'USD';
+            let toCurrency = 'RUB';
+
+            function showMessage(message) {
+                messageText.textContent = message;
+                messageBox.classList.remove('hidden');
+            }
+
+            function hideMessage() {
+                messageBox.classList.add('hidden');
+            }
+
+            async function fetchRates() {
+                try {
+                    const response = await fetch(API_URL);
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    const data = await response.json();
+                    exchangeRates = data.rates;
+                    populateCurrencies('', fromCurrencyList, true);
+                    populateCurrencies('', toCurrencyList, false);
+                    updateDisplay();
+                    convertCurrency();
+                } catch (error) {
+                    console.error('Ошибка при получении данных:', error);
+                    showMessage('Не удалось получить курсы валют. Пожалуйста, попробуйте позже.');
+                }
+            }
+
+            function updateDisplay() {
+                const fromData = currencyData[fromCurrency];
+                const toData = currencyData[toCurrency];
+
+                fromCurrencyDisplay.innerHTML = `<span class="text-xl">${fromData.flag}</span> <span class="ml-2">${fromCurrency}</span>`;
+                toCurrencyDisplay.innerHTML = `<span class="text-xl">${toData.flag}</span> <span class="ml-2">${toCurrency}</span>`;
+            }
+
+            function populateCurrencies(searchQuery = '', listElement, isFromList) {
+                listElement.innerHTML = '';
+                const currencies = Object.keys(currencyData).sort();
+                const lowerCaseQuery = searchQuery.toLowerCase();
+
+                currencies.forEach(currency => {
+                    const data = currencyData[currency];
+                    const fullName = data.name.toLowerCase();
+                    const countryName = data.country.toLowerCase();
+
+                    if (currency.toLowerCase().includes(lowerCaseQuery) ||
+                        fullName.includes(lowerCaseQuery) ||
+                        countryName.includes(lowerCaseQuery)) {
+
+                        const option = document.createElement('div');
+                        option.classList.add('option-item');
+                        option.dataset.currency = currency;
+                        option.innerHTML = `<span class="text-xl">${data.flag}</span> <span class="ml-2">${currency} - ${data.name}</span>`;
+                        
+                        option.addEventListener('click', () => {
+                            if (isFromList) {
+                                fromCurrency = currency;
+                            } else {
+                                toCurrency = currency;
+                            }
+                            updateDisplay();
+                            closeDropdowns();
+                            convertCurrency();
+                        });
+
+                        listElement.appendChild(option);
+                    }
+                });
+            }
+
+            function convertCurrency() {
+                const amount = parseFloat(amountInput.value);
+                
+                if (isNaN(amount) || amount <= 0) {
+                    showMessage('Пожалуйста, введите корректную сумму.');
+                    return;
+                }
+
+                if (!exchangeRates[fromCurrency] || !exchangeRates[toCurrency]) {
+                    showMessage('Не удалось найти курсы для выбранных валют.');
+                    return;
+                }
+
+                const amountInUSD = amount / exchangeRates[fromCurrency];
+                const convertedAmount = amountInUSD * exchangeRates[toCurrency];
+
+                const toCurrencySymbol = currencyData[toCurrency]?.symbol || toCurrency;
+                resultText.textContent = `${convertedAmount.toFixed(2)} ${toCurrencySymbol}`;
+            }
+
+            function closeDropdowns() {
+                document.querySelectorAll('.dropdown-options').forEach(dropdown => {
+                    dropdown.classList.add('hidden');
+                });
+            }
+
+            document.querySelectorAll('.select-toggle').forEach(toggle => {
+                toggle.addEventListener('click', (event) => {
+                    const dropdownId = event.currentTarget.dataset.dropdown;
+                    const dropdownContent = document.querySelector(`[data-dropdown-content="${dropdownId}"]`);
+                    
+                    document.querySelectorAll('.dropdown-options').forEach(dropdown => {
+                        if (dropdown !== dropdownContent) {
+                            dropdown.classList.add('hidden');
+                        }
+                    });
+
+                    dropdownContent.classList.toggle('hidden');
+                    if (!dropdownContent.classList.contains('hidden')) {
+                         const searchInput = dropdownContent.querySelector('.search-input');
+                         searchInput.value = '';
+                         if (dropdownId === 'from') {
+                             populateCurrencies('', fromCurrencyList, true);
+                         } else {
+                             populateCurrencies('', toCurrencyList, false);
+                         }
+                         searchInput.focus();
+                    }
+                });
+            });
+
+            fromSearchInput.addEventListener('input', (event) => {
+                populateCurrencies(event.target.value, fromCurrencyList, true);
+            });
+
+            toSearchInput.addEventListener('input', (event) => {
+                populateCurrencies(event.target.value, toCurrencyList, false);
+            });
+
+            document.addEventListener('click', (event) => {
+                const isClickInside = event.target.closest('.custom-select');
+                if (!isClickInside) {
+                    closeDropdowns();
+                }
+            });
+
+            convertButton.addEventListener('click', convertCurrency);
+            closeMessageBoxButton.addEventListener('click', hideMessage);
+            swapButton.addEventListener('click', () => {
+                [fromCurrency, toCurrency] = [toCurrency, fromCurrency];
+                updateDisplay();
+                convertCurrency();
+            });
+
+            fetchRates();
+        };
+    </script>
+</body>
+</html>
+
+

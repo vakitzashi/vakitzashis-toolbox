@@ -1,0 +1,391 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pass-Port</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
+:root {
+            --neon-red: #ff0000;
+            --neon-pink: #ff1493;
+            --dark-bg: #111827;
+            --mid-bg: #1f2937;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            font-family: 'Space Mono', monospace;
+            color: #e5e7eb;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+        }
+body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.15),
+                rgba(0, 0, 0, 0.15) 1px,
+                transparent 1px,
+                transparent 3px
+            );
+animation: flicker 0.15s infinite alternate;
+        }
+
+        @keyframes flicker {
+            0% { opacity: 0.98; }
+            50% { opacity: 1; }
+            100% { opacity: 0.98; }
+        }
+.card {
+            background-color: var(--mid-bg);
+            border: 1px solid var(--neon-red);
+            box-shadow: 0 0 15px var(--neon-red);
+            max-width: 480px;
+            width: 100%;
+        }
+.switch-container input[type="radio"] {
+            display: none;
+        }
+
+        .switch-container label {
+            flex-grow: 1;
+            text-align: center;
+            padding: 8px 0;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            color: #9ca3af;
+            border: 1px solid transparent;
+        }
+
+        .switch-container input[type="radio"]:checked + label {
+            background-color: var(--neon-pink);
+            color: var(--dark-bg);
+            font-weight: bold;
+            border-color: var(--neon-pink);
+            box-shadow: 0 0 5px var(--neon-pink);
+        }
+input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            background: #374151;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--neon-red);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 5px var(--neon-red);
+        }
+.neon-button {
+            background-color: transparent;
+            border: 2px solid var(--neon-red);
+            color: var(--neon-red);
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 8px var(--neon-red);
+        }
+
+        .neon-button:hover {
+            background-color: var(--neon-red);
+            color: var(--dark-bg);
+            box-shadow: 0 0 20px var(--neon-red);
+        }
+#password-output {
+            background-color: #0d0d1a;
+            border: 2px solid var(--neon-pink);
+            color: var(--neon-red);
+            text-shadow: 0 0 5px var(--neon-red);
+            font-size: 1.25rem;
+            min-height: 56px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            word-break: break-all;
+            user-select: none;
+            transition: all 0.1s ease;
+        }
+
+        #password-output:active {
+            box-shadow: 0 0 10px var(--neon-pink), inset 0 0 10px var(--neon-pink);
+        }
+.neon-checkbox {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--neon-red);
+            background-color: transparent;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 8px;
+            position: relative;
+        }
+
+        .neon-checkbox:checked {
+            background-color: var(--neon-red);
+            box-shadow: 0 0 5px var(--neon-red);
+        }
+
+        .neon-checkbox:checked::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--dark-bg);
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+    </style>
+</head>
+<body>
+<div id="app" class="card p-6 rounded-xl space-y-6">
+    <h1 class="text-3xl font-bold text-center uppercase" style="font-family: 'Orbitron', sans-serif; color: var(--neon-red); text-shadow: 0 0 10px var(--neon-red);">Pass-Port</h1>
+<div>
+        <div id="password-output" class="p-3 rounded-lg text-center font-bold">
+            Нажмите 🔄 для генерации
+        </div>
+        <p id="copy-message" class="text-xs text-center mt-2 h-4 text-green-400 opacity-0 transition-opacity">Пароль скопирован!</p>
+    </div>
+<div class="space-y-2">
+        <label class="text-sm block text-gray-400 flex justify-between">
+            Длина пароля: <span id="length-value" class="text-white">16</span>
+        </label>
+        <input type="range" id="length-slider" min="4" max="64" value="16" oninput="updateSettings();">
+    </div>
+<div class="space-y-2">
+        <label class="text-sm block text-gray-400 flex justify-between">
+            Жёсткость (logic \ chaotic): <span id="hardness-value" class="text-white">50</span>
+        </label>
+        <input type="range" id="hardness-slider" min="1" max="100" value="50" oninput="updateSettings();">
+    </div>
+<div class="space-y-2">
+        <label class="text-sm block text-gray-400">Включать:</label>
+        <div class="switch-container flex space-x-2 p-1 rounded-lg bg-gray-700">
+            <input type="radio" id="char-type-alpha" name="char-type" value="alpha" checked onchange="updateSettings();">
+            <label for="char-type-alpha">ABC</label>
+
+            <input type="radio" id="char-type-alphanum" name="char-type" value="alphanum" onchange="updateSettings();">
+            <label for="char-type-alphanum">A1C</label>
+
+            <input type="radio" id="char-type-numeric" name="char-type" value="numeric" onchange="updateSettings();">
+            <label for="char-type-numeric">123</label>
+        </div>
+    </div>
+<div class="space-y-2">
+        <label class="text-sm block text-gray-400">Регистр:</label>
+        <div class="switch-container flex space-x-2 p-1 rounded-lg bg-gray-700">
+            <input type="radio" id="case-type-lower" name="case-type" value="lower" checked onchange="updateSettings();">
+            <label for="case-type-lower">abc</label>
+
+            <input type="radio" id="case-type-mixed" name="case-type" value="mixed" onchange="updateSettings();">
+            <label for="case-type-mixed">AbC</label>
+
+            <input type="radio" id="case-type-upper" name="case-type" value="upper" onchange="updateSettings();">
+            <label for="case-type-upper">ABC</label>
+        </div>
+    </div>
+<div class="space-y-3 p-4 border border-gray-600 rounded-lg">
+        <h3 class="text-lg font-bold text-white mb-2">Опции:</h3>
+<div class="flex items-center">
+            <input type="checkbox" id="include-special" class="neon-checkbox" onchange="updateSettings();">
+            <label for="include-special" class="text-sm text-gray-300">Добавить спецсимволы (например, !@#$%)</label>
+        </div>
+<div class="space-y-2">
+            <label for="exclude-chars" class="text-sm block text-gray-300">Исключить символы:</label>
+            <input type="text" id="exclude-chars" placeholder="Например: l, 1, O, 0" class="w-full p-2 rounded bg-gray-800 text-white border border-gray-600 focus:border-neon-red focus:ring-1 focus:ring-neon-red" oninput="updateSettings();">
+        </div>
+    </div>
+<button id="generate-button" onclick="generatePassword();" class="neon-button w-full py-3 rounded-lg flex items-center justify-center space-x-2">
+        <span class="text-xl">🔄</span>
+        <span>СГЕНЕРИРОВАТЬ ПАРОЛЬ</span>
+    </button>
+</div>
+
+<script>
+    const LOWERCASE = 'abcdefghijklmnopqrstuvwxyz';
+    const UPPERCASE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const NUMBERS = '0123456789';
+    const SPECIAL = '!@#$%^&*()_+=-`~?><,./:;|\\]{}[]';
+    const VOWELS_LOWER = 'aeiou';
+    const CONSONANTS_LOWER = 'bcdfghjklmnpqrstvwxyz';
+
+    let currentSettings = {};
+function getRandomChar(pool) {
+        if (pool.length === 0) return '';
+        const randomIndex = Math.floor(Math.random() * pool.length);
+        return pool[randomIndex];
+    }
+function updateSettings() {
+        const length = parseInt(document.getElementById('length-slider').value);
+        const hardness = parseInt(document.getElementById('hardness-slider').value);
+
+        document.getElementById('length-value').textContent = length;
+        document.getElementById('hardness-value').textContent = hardness;
+        currentSettings = {
+            length: length,
+            hardness: hardness,
+            charType: document.querySelector('input[name="char-type"]:checked').value,
+            caseType: document.querySelector('input[name="case-type"]:checked').value,
+            includeSpecial: document.getElementById('include-special').checked,
+            excludeChars: document.getElementById('exclude-chars').value.trim()
+        };
+    }
+function buildCharacterPool() {
+        let pool = '';
+        const charType = currentSettings.charType;
+        const caseType = currentSettings.caseType;
+        if (charType === 'alpha' || charType === 'alphanum') {
+            if (caseType === 'lower' || caseType === 'mixed') {
+                pool += LOWERCASE;
+            }
+            if (caseType === 'upper' || caseType === 'mixed') {
+                pool += UPPERCASE;
+            }
+        }
+        if (charType === 'numeric' || charType === 'alphanum') {
+            pool += NUMBERS;
+        }
+        if (currentSettings.includeSpecial) {
+            pool += SPECIAL;
+        }
+        const excluded = currentSettings.excludeChars;
+        if (excluded) {
+            const pattern = new RegExp(`[${escapeRegExp(excluded)}]`, 'g');
+            pool = pool.replace(pattern, '');
+        }
+
+        return pool;
+    }
+function escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+function generatePassword() {
+        updateSettings(); 
+        
+        const length = currentSettings.length;
+        const hardness = currentSettings.hardness;
+        const charType = currentSettings.charType;
+        const caseType = currentSettings.caseType;
+        const fullPool = buildCharacterPool();
+        if (fullPool.length === 0) {
+            document.getElementById('password-output').textContent = 'Ошибка: Выберите хотя бы один тип символов.';
+            return;
+        }
+
+        let passwordChars = [];
+        const canBePronounceable = (charType === 'alpha' || charType === 'alphanum') && (fullPool.includes(LOWERCASE[0]) || fullPool.includes(UPPERCASE[0])); 
+        const ratioChaotic = hardness / 100;
+        const numChaotic = Math.round(length * ratioChaotic);
+        const numPronounceable = length - numChaotic;
+        for (let i = 0; i < numChaotic; i++) {
+            passwordChars.push(getRandomChar(fullPool));
+        }
+        if (canBePronounceable && numPronounceable > 0) {
+            let pronounceableChars = [];
+            
+            let vowelsPool = '';
+            let consonantsPool = '';
+            if (caseType === 'lower' || caseType === 'mixed') {
+                vowelsPool += VOWELS_LOWER;
+                consonantsPool += CONSONANTS_LOWER;
+            }
+            if (caseType === 'upper' || caseType === 'mixed') {
+                vowelsPool += VOWELS_LOWER.toUpperCase();
+                consonantsPool += CONSONANTS_LOWER.toUpperCase();
+            }
+            const excluded = currentSettings.excludeChars;
+            if (excluded) {
+                const pattern = new RegExp(`[${escapeRegExp(excluded)}]`, 'g');
+                vowelsPool = vowelsPool.replace(pattern, '');
+                consonantsPool = consonantsPool.replace(pattern, '');
+            }
+
+            let isVowelTurn = Math.random() < 0.5;
+
+            for (let i = 0; i < numPronounceable; i++) {
+                let poolToUse = isVowelTurn ? vowelsPool : consonantsPool;
+                let char = '';
+                if (poolToUse.length === 0) {
+                    char = getRandomChar(fullPool); 
+                } else {
+                    char = getRandomChar(poolToUse);
+                    isVowelTurn = !isVowelTurn;
+                }
+                
+                pronounceableChars.push(char);
+            }
+
+            passwordChars = passwordChars.concat(pronounceableChars);
+        }
+        if (hardness > 1 || !canBePronounceable) {
+            for (let i = passwordChars.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [passwordChars[i], passwordChars[j]] = [passwordChars[j], passwordChars[i]];
+            }
+        }
+        
+        document.getElementById('password-output').textContent = passwordChars.join('');
+    }
+function copyPassword(event) {
+        const passwordElement = event.currentTarget;
+        const password = passwordElement.textContent.trim();
+        const copyMessage = document.getElementById('copy-message');
+        if (password === 'Нажмите 🔄 для генерации' || password.includes('Ошибка')) {
+            return;
+        }
+        const textarea = document.createElement('textarea');
+        textarea.value = password;
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+            document.execCommand('copy');
+            copyMessage.classList.remove('opacity-0');
+            copyMessage.classList.add('opacity-100');
+            setTimeout(() => {
+                copyMessage.classList.remove('opacity-100');
+                copyMessage.classList.add('opacity-0');
+            }, 1500);
+        } catch (err) {
+            console.error('Не удалось скопировать текст: ', err);
+        } finally {
+            document.body.removeChild(textarea);
+        }
+    }
+    window.onload = function() {
+        document.getElementById('password-output').addEventListener('click', copyPassword);
+        updateSettings();
+    };
+
+</script>
+
+</body>
+</html>
+
+
+

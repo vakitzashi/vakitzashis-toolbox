@@ -1,0 +1,328 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Колесо Цветового Спектра</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body { font-family: 'Inter', sans-serif; transition: background-color 0.5s; }
+        .lightness-slider::-webkit-slider-runnable-track { height: 10px; border-radius: 5px; background: linear-gradient(to right, #000, #fff); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .lightness-slider::-moz-range-track { height: 10px; border-radius: 5px; background: linear-gradient(to right, #000, #fff); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .lightness-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #fff; cursor: pointer; border: 3px solid currentColor; margin-top: -5px; transition: border-color 0.3s, transform 0.1s; }
+        .lightness-slider::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: #fff; cursor: pointer; border: 3px solid currentColor; transition: border-color 0.3s, transform 0.1s; }
+        #copy-message { opacity: 0; transform: translateY(10px); transition: opacity 0.3s ease-out, transform 0.3s ease-out; }
+        #copy-message.active { opacity: 1; transform: translateY(0); }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen p-4 sm:p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-center mb-10 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600">
+            Выбор Цвета HSL
+        </h1>
+
+        <div class="flex flex-col lg:flex-row gap-8">
+            <div class="lg:w-3/5 w-full space-y-6">
+                <div class="relative bg-gray-800 p-2 rounded-xl shadow-2xl transition-all duration-300 hover:shadow-purple-500/30">
+                    <canvas id="colorWheel" class="w-full aspect-square rounded-lg cursor-crosshair"></canvas>
+                </div>
+
+                <div class="bg-gray-800 p-4 rounded-xl shadow-xl">
+                    <label for="lightness-slider" class="block text-sm font-medium mb-2 text-gray-300">Яркость (Lightness)</label>
+                    <input type="range" id="lightness-slider" min="0" max="100" value="50" class="lightness-slider w-full h-2 rounded-lg appearance-none cursor-pointer">
+                </div>
+            </div>
+
+            <div class="lg:w-2/5 w-full space-y-6">
+                <div class="bg-gray-800 p-6 rounded-xl shadow-2xl transition-all duration-300">
+                    <p class="text-xl font-semibold mb-3 text-gray-300">Выбранный Цвет:</p>
+                    <div id="color-preview" class="w-full h-32 rounded-lg border-4 border-gray-700 transition-colors duration-500" style="background-color: rgb(255,0,0);"></div>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="bg-gray-800 p-4 rounded-xl shadow-xl transition-all duration-300 hover:ring-2 hover:ring-purple-500/50 cursor-pointer" data-copy-target="hex">
+                        <p class="text-sm font-medium text-gray-400">HEX</p>
+                        <p id="hex-output" class="text-2xl font-mono truncate transition-colors duration-300">#FF0000</p>
+                    </div>
+
+                    <div class="bg-gray-800 p-4 rounded-xl shadow-xl transition-all duration-300 hover:ring-2 hover:ring-purple-500/50 cursor-pointer" data-copy-target="rgb">
+                        <p class="text-sm font-medium text-gray-400">RGB</p>
+                        <p id="rgb-output" class="text-2xl font-mono transition-colors duration-300">rgb(255, 0, 0)</p>
+                    </div>
+
+                    <div class="bg-gray-800 p-4 rounded-xl shadow-xl transition-all duration-300 hover:ring-2 hover:ring-purple-500/50 cursor-pointer" data-copy-target="hsl">
+                        <p class="text-sm font-medium text-gray-400">HSL</p>
+                        <p id="hsl-output" class="text-2xl font-mono transition-colors duration-300">hsl(0, 100%, 50%)</p>
+                    </div>
+                </div>
+
+                <div id="copy-message" class="fixed bottom-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-2xl text-sm font-semibold">
+                    Код скопирован!
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('colorWheel');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const lightnessSlider = document.getElementById('lightness-slider');
+        const colorPreview = document.getElementById('color-preview');
+        const hexOutput = document.getElementById('hex-output');
+        const rgbOutput = document.getElementById('rgb-output');
+        const hslOutput = document.getElementById('hsl-output');
+        const copyMessage = document.getElementById('copy-message');
+
+        let H = 0;
+        let S = 100;
+        let L = 50;
+
+        let isDrawing = false;
+        let radius = 0;
+        let center = 0;
+
+        function hslToRgb(h, s, l) {
+            s /= 100;
+            l /= 100;
+
+            let c = (1 - Math.abs(2 * l - 1)) * s;
+            let x = c * (1 - Math.abs((h / 60) % 2 - 1));
+            let m = l - c / 2;
+
+            let r = 0, g = 0, b = 0;
+
+            if (0 <= h && h < 60) { r = c; g = x; b = 0; }
+            else if (60 <= h && h < 120) { r = x; g = c; b = 0; }
+            else if (120 <= h && h < 180) { r = 0; g = c; b = x; }
+            else if (180 <= h && h < 240) { r = 0; g = x; b = c; }
+            else if (240 <= h && h < 300) { r = x; g = 0; b = c; }
+            else if (300 <= h && h < 360) { r = c; g = 0; b = x; }
+
+            r = Math.round((r + m) * 255);
+            g = Math.round((g + m) * 255);
+            b = Math.round((b + m) * 255);
+
+            return { r, g, b };
+        }
+
+        function rgbToHex(r, g, b) {
+            const toHex = (c) => c.toString(16).padStart(2, '0');
+            return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+        }
+
+        function rgbToHsl(r, g, b) {
+            r /= 255;
+            g /= 255;
+            b /= 255;
+
+            const max = Math.max(r, g, b);
+            const min = Math.min(r, g, b);
+            let h = 0, s = 0;
+            const l = (max + min) / 2;
+
+            if (max !== min) {
+                const d = max - min;
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                switch (max) {
+                    case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                    case g: h = (b - r) / d + 2; break;
+                    case b: h = (r - g) / d + 4; break;
+                }
+                h /= 6;
+            }
+
+            return {
+                h: Math.round(h * 360),
+                s: Math.round(s * 100),
+                l: Math.round(l * 100)
+            };
+        }
+
+        function drawSelectorMarker() {
+            const angleRad = H * Math.PI / 180;
+            const dist = (S / 100) * radius;
+
+            const x = center + dist * Math.cos(angleRad);
+            const y = center + dist * Math.sin(angleRad);
+
+            ctx.beginPath();
+            ctx.arc(x, y, 10, 0, 2 * Math.PI, false);
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(x, y, 8, 0, 2 * Math.PI, false);
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        function drawColorWheel() {
+            if (!canvas.width || !canvas.height) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const imageData = ctx.createImageData(canvas.width, canvas.height);
+            const data = imageData.data;
+
+            for (let x = 0; x < canvas.width; x++) {
+                for (let y = 0; y < canvas.height; y++) {
+                    const dx = x - center;
+                    const dy = y - center;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance <= radius) {
+                        let hue = (Math.atan2(dy, dx) * 180 / Math.PI);
+                        if (hue < 0) hue += 360;
+                        let sat = (distance / radius) * 100;
+
+                        const { r, g, b } = hslToRgb(hue, sat, 50);
+
+                        const index = (y * canvas.width + x) * 4;
+                        data[index] = r;
+                        data[index + 1] = g;
+                        data[index + 2] = b;
+                        data[index + 3] = 255;
+                    }
+                }
+            }
+
+            ctx.putImageData(imageData, 0, 0);
+            drawSelectorMarker();
+        }
+
+        function pickColor(x, y) {
+            const dx = x - center;
+            const dy = y - center;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance <= radius) {
+                const px = Math.max(0, Math.min(canvas.width - 1, Math.round(x)));
+                const py = Math.max(0, Math.min(canvas.height - 1, Math.round(y)));
+                const imageData = ctx.getImageData(px, py, 1, 1).data;
+
+                const hsl = rgbToHsl(imageData[0], imageData[1], imageData[2]);
+                H = hsl.h;
+                S = hsl.s;
+
+                updateDisplay();
+            }
+        }
+
+        function updateDisplay() {
+            const { r, g, b } = hslToRgb(H, S, L);
+            const hex = rgbToHex(r, g, b);
+            const rgbString = `rgb(${r}, ${g}, ${b})`;
+            const hslString = `hsl(${H}, ${S}%, ${L}%)`;
+
+            colorPreview.style.backgroundColor = rgbString;
+            hexOutput.textContent = hex.toUpperCase();
+            rgbOutput.textContent = rgbString;
+            hslOutput.textContent = hslString;
+            lightnessSlider.style.borderColor = rgbString;
+
+            drawColorWheel();
+        }
+
+        function getCanvasCoords(e) {
+            const rect = canvas.getBoundingClientRect();
+            let clientX, clientY;
+
+            if (e.touches && e.touches.length > 0) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+
+            const x = (clientX - rect.left) * (canvas.width / rect.width);
+            const y = (clientY - rect.top) * (canvas.height / rect.height);
+            return { x, y };
+        }
+
+        function handlePointerDown(e) {
+            isDrawing = true;
+            e.preventDefault();
+            const { x, y } = getCanvasCoords(e);
+            pickColor(x, y);
+        }
+
+        function handlePointerMove(e) {
+            if (!isDrawing) return;
+            e.preventDefault();
+            const { x, y } = getCanvasCoords(e);
+            pickColor(x, y);
+        }
+
+        function handlePointerUp() {
+            isDrawing = false;
+        }
+
+        function copyToClipboard(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                copyMessage.textContent = `${text} скопирован!`;
+                copyMessage.classList.add('active');
+                setTimeout(() => copyMessage.classList.remove('active'), 1500);
+            } catch (err) {
+                console.error(err);
+            }
+            document.body.removeChild(textarea);
+        }
+
+        function resizeCanvas() {
+            const displaySize = Math.max(1, Math.floor(canvas.offsetWidth));
+            const pixelRatio = window.devicePixelRatio || 1;
+
+            canvas.width = Math.floor(displaySize * pixelRatio);
+            canvas.height = Math.floor(displaySize * pixelRatio);
+
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+            radius = canvas.width / 2;
+            center = radius;
+
+            drawColorWheel();
+        }
+
+        canvas.addEventListener('mousedown', handlePointerDown);
+        canvas.addEventListener('mousemove', handlePointerMove);
+        window.addEventListener('mouseup', handlePointerUp);
+
+        canvas.addEventListener('touchstart', handlePointerDown, { passive: false });
+        canvas.addEventListener('touchmove', handlePointerMove, { passive: false });
+        window.addEventListener('touchend', handlePointerUp);
+
+        lightnessSlider.addEventListener('input', (e) => {
+            L = parseInt(e.target.value, 10);
+            updateDisplay();
+        });
+
+        document.querySelectorAll('[data-copy-target]').forEach((element) => {
+            element.addEventListener('click', () => {
+                const target = element.getAttribute('data-copy-target');
+                let textToCopy = '';
+                if (target === 'hex') textToCopy = hexOutput.textContent;
+                else if (target === 'rgb') textToCopy = rgbOutput.textContent;
+                else if (target === 'hsl') textToCopy = hslOutput.textContent;
+                if (textToCopy) copyToClipboard(textToCopy);
+            });
+        });
+
+        window.addEventListener('load', () => {
+            resizeCanvas();
+            updateDisplay();
+        });
+
+        window.addEventListener('resize', resizeCanvas);
+    </script>
+</body>
+</html>
+
